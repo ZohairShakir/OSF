@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Create Account • Our Startup Freelancer</title>
+
+  <link rel="stylesheet" href="style1.css">
+</head>
+<body>
+
+  <main class="signup-shell">
+
+    <!-- Left branding panel -->
+    <section class="signup-visual">
+      <div class="brand-block">
+        <div class="brand-logo">O</div>
+        <h1>Create your account</h1>
+        <p>
+          Join Our Startup Freelancer and start working with a professional
+          team focused on quality, transparency, and on-time delivery.
+        </p>
+
+        <ul class="trust-points">
+          <li>✔ Free account creation</li>
+          <li>✔ Secure & private data</li>
+          <li>✔ Dedicated support team</li>
+          <li>✔ Trusted by growing businesses</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Signup form panel -->
+    <section class="signup-form-panel">
+      <form class="signup-card" id="signupForm">
+
+        <h2>Create your account</h2>
+        <p class="sub">It only takes a minute to get started</p>
+
+        <div class="field">
+          <label>Full name</label>
+          <input type="text" name="name" placeholder="John Doe" required>
+        </div>
+
+        <div class="field">
+          <label>Email address</label>
+          <input type="email" name="email" placeholder="you@company.com" required>
+        </div>
+
+        <div class="field">
+          <label>Mobile number</label>
+          <input type="tel" name="mobile" placeholder="9876543210" required>
+        </div>
+
+        <div class="field password-field">
+          <label>Password</label>
+          <input type="password" name="password" placeholder="Create a strong password" required>
+          <span class="toggle-pass">👁</span>
+        </div>
+
+        <button class="signup-btn" type="submit">
+          Create Account
+        </button>
+
+        <div class="signup-footer">
+          Already have an account?
+          <a href="login.html">Login</a>
+        </div>
+
+      </form>
+    </section>
+
+  </main>
+
+  <!-- Existing global JS -->
+  <script src="../js/script.js"></script>
+
+  <!-- Password toggle -->
+  <script>
+    document.querySelector(".toggle-pass").onclick = function(){
+      const input = this.previousElementSibling;
+      input.type = input.type === "password" ? "text" : "password";
+    };
+  </script>
+
+</body>
+</html>

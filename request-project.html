@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Book a Free Call — Our Startup Freelancer</title>
+
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+
+<body>
+
+  <!-- Header (Injected) -->
+  <header id="site-header"></header>
+
+  <main>
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="container">
+        <h1>
+          Book a <span style="color:#60a5fa">Free Consultation Call</span>
+        </h1>
+        <p>
+          Talk directly with our team about your goals, budget, and timeline.
+          <br>
+          No obligation. 100% free.
+        </p>
+      </div>
+    </section>
+
+    <!-- BOOKING SECTION -->
+    <section class="section container">
+      <div class="two-col">
+
+        <!-- LEFT: INFO -->
+        <div class="contact-info">
+          <h3>What you’ll get in this call</h3>
+          <p>
+            This free call helps us understand your business and suggest the
+            best solution for you.
+          </p>
+
+          <div class="contact-item">
+            <div class="icon">✔</div>
+            <span>Project feasibility & scope discussion</span>
+          </div>
+
+          <div class="contact-item">
+            <div class="icon">✔</div>
+            <span>Timeline & budget estimation</span>
+          </div>
+
+          <div class="contact-item">
+            <div class="icon">✔</div>
+            <span>Technology & strategy suggestions</span>
+          </div>
+
+          <div class="contact-item">
+            <div class="icon">✔</div>
+            <span>No sales pressure, honest advice</span>
+          </div>
+        </div>
+
+        <!-- RIGHT: FORM -->
+        <div class="contact-form request-card">
+          <h3>Schedule your free call</h3>
+
+          <form id="projectForm">
+
+            <div class="field">
+              <label>Full Name</label>
+              <input name="name" placeholder="Your name" required>
+            </div>
+
+            <div class="field">
+              <label>Email Address</label>
+              <input name="email" placeholder="you@example.com" required>
+            </div>
+
+            <div class="field">
+              <label>Phone / WhatsApp Number</label>
+              <input name="phone" placeholder="+91 XXXXX XXXXX" required>
+            </div>
+            <div class="field">
+              <label>Preferred Time Slot</label>
+              <select name="slot" required>
+              <option>10:00 AM – 11:00 AM</option>
+              <option value="">Select a time slot</option>
+              <option>11:00 AM – 12:00 PM</option>
+              <option>02:00 PM – 03:00 PM</option>
+              <option>03:00 PM – 04:00 PM</option>
+              <option>05:00 PM – 06:00 PM</option>
+              </select>
+            </div>
+
+            
+
+            <div class="field">
+              <label>Preferred Budget Range</label>
+              <select name="budget" required>
+                <option value="">Select budget</option>
+                <option>₹5k – ₹10k</option>
+                <option>₹10k – ₹25k</option>
+                <option>₹25k – ₹50k</option>
+                <option>₹50k+</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Briefly describe your requirement</label>
+              <textarea
+                name="description"
+                rows="5"
+                placeholder="Website, app, redesign, marketing, etc."
+                required
+              ></textarea>
+            </div>
+
+            <button class="btn-primary full-width" type="submit">
+              Book My Free Call
+            </button>
+
+            <div class="contact-trust">
+              We usually respond within 24 hours
+            </div>
+
+          </form>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer (Injected) -->
+  <footer id="site-footer"></footer>
+
+  <script src="js/script.js"></script>
+</body>
+</html>

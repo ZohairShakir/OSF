@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login • Our Startup Freelancer</title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <main class="login-shell">
+
+    <!-- Left branding panel -->
+    <section class="login-visual">
+      <div class="brand-block">
+        <div class="brand-logo">O</div>
+        <h1>Welcome Back</h1>
+        <p>
+          Log in to manage your projects, collaborate with our team,
+          and grow your business with confidence.
+        </p>
+
+        <ul class="trust-points">
+          <li>✔ Secure & encrypted login</li>
+          <li>✔ Trusted by startups & businesses</li>
+          <li>✔ Dedicated project support</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Login form panel -->
+    <section class="login-form-panel">
+      <form class="login-card" id="loginForm">
+
+        <h2>Sign in to your account</h2>
+        <p class="sub">Enter your credentials to continue</p>
+
+        <div class="field">
+          <label>Email address</label>
+          <input type="email" name="email" placeholder="you@company.com" required>
+        </div>
+
+        <div class="field password-field">
+          <label>Password</label>
+          <input type="password" name="password" placeholder="••••••••" required>
+          <span class="toggle-pass">👁</span>
+        </div>
+
+        <!-- CAPTCHA SLOT -->
+        <div class="captcha-row">
+          <span id="captchaQuestion"></span>
+          <input id="captchaAnswer" placeholder="Answer" required>
+        </div>
+
+        <button class="login-btn" type="submit">Login Securely</button>
+
+        <div class="login-footer">
+          <a href="#">Forgot password?</a>
+          <span>•</span>
+          <a href="signup.html">Create an account</a>
+        </div>
+
+      </form>
+    </section>
+
+  </main>
+
+  <!-- Use your existing JS -->
+  <script src="../js/script.js"></script>
+
+  <!-- Password toggle -->
+  <script>
+    document.querySelector(".toggle-pass").onclick = function(){
+      const input = this.previousElementSibling;
+      input.type = input.type === "password" ? "text" : "password";
+    };
+  </script>
+
+</body>
+</html>
