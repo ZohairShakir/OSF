@@ -1,52 +1,49 @@
 /* ========= GLOBAL SITE SCRIPT ========= */
 document.addEventListener("DOMContentLoaded", () => {
+  // FRONTEND BASE URL
+// For local development: http://localhost:4000
+// For production: your deployed URL
+  const BASE_URL = window.location.hostname.includes("localhost")
+  ? "http://localhost:4000/api"
+  : "http://127.0.0.1:4000/api";
+
 
   // ===== FORCE CLIENT THEME =====
-document.documentElement.classList.remove(
-  "theme-light",
-  "theme-corporate"
-);
-document.body.classList.add("theme-client");
-
+  document.documentElement.classList.remove("theme-light", "theme-corporate");
+  document.body.classList.add("theme-client");
 
   /* ================= HEADER & FOOTER ================= */
-
-const headerHTML = `
-<div class="container">
-  <div class="inner header-inner premium-header">
-
-    <!-- Brand -->
-    <div class="brand premium-brand">
-      <div class="logo premium-logo">O</div>
-      <div class="brand-text">
-        <span class="brand-title">Our Startup Freelancer</span>
-        <span class="brand-tagline">Build • Launch • Grow</span>
+  const headerHTML = `
+  <div class="container">
+    <div class="inner header-inner premium-header">
+      <!-- Brand -->
+      <div class="brand premium-brand">
+        <div class="logo premium-logo">O</div>
+        <div class="brand-text">
+          <span class="brand-title">Our Startup Freelancer</span>
+          <span class="brand-tagline">Build • Launch • Grow</span>
+        </div>
       </div>
+
+      <!-- Mobile toggle -->
+      <button class="menu-toggle premium-toggle" id="menuToggle">☰</button>
+
+      <!-- Navigation -->
+      <nav class="nav premium-nav" id="mobileNav">
+        <a href="index.html">Home</a>
+        <a href="services.html">Services</a>
+        <a href="portfolio.html">Portfolio</a>
+        <a href="contact.html">Contact</a>
+        <a href="hire-us.html">Hire Us</a>
+
+        <a href="request-project.html" class="header-cta">Book Free Call</a>
+
+        <a href="auth/login.html" class="nav-auth">Login</a>
+        <a href="#" class="logout-btn nav-logout" style="display:none">Logout</a>
+        <span class="nav-username"></span>
+      </nav>
     </div>
-
-    <!-- Mobile toggle -->
-    <button class="menu-toggle premium-toggle" id="menuToggle">☰</button>
-
-    <!-- Navigation -->
-    <nav class="nav premium-nav" id="mobileNav">
-      <a href="index.html">Home</a>
-      <a href="services.html">Services</a>
-      <a href="portfolio.html">Portfolio</a>
-      <a href="contact.html">Contact</a>
-      <a href="hire-us.html">Hire Us</a>
-
-      <a href="request-project.html" class="header-cta">
-        Book Free Call
-      </a>
-
-      <a href="auth/login.html" class="nav-auth">Login</a>
-      <a href="#" class="logout-btn nav-logout" style="display:none">Logout</a>
-      <span class="nav-username"></span>
-    </nav>
-
-  </div>
-</div>`;
-
+  </div>`;
 
   const footerHTML = `
   <div class="container">
@@ -77,33 +74,16 @@ const headerHTML = `
         </ul>
       </div>
       <div>
-  <h4>Contact</h4>
-  <ul class="footer-contact">
-    <li>
-      📍 Navlakha, Indore
-    </li>
-
-    <li>
-      ✉️ 
-      <a href="mailto:info@ourstartupfreelancer.com">
-        info@ourstartupfreelancer.com
-      </a>
-    </li>
-
-    <li>
-      💬
-      <a
-        href="https://wa.me/917067548217"
-        target="_blank"
-      >
-        Chat on WhatsApp
-      </a>
-    </li>
-  </ul>
-</div>
-
-    <div style="text-align:center;margin-top:14px;color:var(--muted)">
-      © 2025 Our Startup Freelancer. All rights reserved.
+        <h4>Contact</h4>
+        <ul class="footer-contact">
+          <li>📍 Navlakha, Indore</li>
+          <li>✉️ <a href="mailto:info@ourstartupfreelancer.com">info@ourstartupfreelancer.com</a></li>
+          <li>💬 <a href="https://wa.me/917067548217" target="_blank">Chat on WhatsApp</a></li>
+        </ul>
+      </div>
+      <div style="text-align:center;margin-top:14px;color:var(--muted)">
+        © 2025 Our Startup Freelancer. All rights reserved.
+      </div>
     </div>
   </div>`;
 
@@ -114,7 +94,6 @@ const headerHTML = `
   if (footerEl) footerEl.innerHTML = `<footer class="footer">${footerHTML}</footer>`;
 
   /* ================= TOAST ================= */
-
   const toast = document.createElement("div");
   toast.id = "osf-toast";
   Object.assign(toast.style, {
@@ -138,26 +117,20 @@ const headerHTML = `
   };
 
   /* ================= MOBILE NAV ================= */
-
   const menuToggle = document.getElementById("menuToggle");
   const mobileNav = document.getElementById("mobileNav");
-
   if (menuToggle && mobileNav) {
     menuToggle.addEventListener("click", () => {
       mobileNav.classList.toggle("active");
     });
-
     mobileNav.querySelectorAll("a").forEach(link => {
-      link.addEventListener("click", () => {
-        mobileNav.classList.remove("active");
-      });
+      link.addEventListener("click", () => mobileNav.classList.remove("active"));
     });
   }
 
   /* ================= AUTH NAV STATE ================= */
-
   const updateNav = () => {
-    const logged = !!localStorage.getItem("currentUser");
+    const logged = !!localStorage.getItem("token");
     document.querySelectorAll(".nav-auth").forEach(e => e.style.display = logged ? "none" : "inline-block");
     document.querySelectorAll(".nav-logout").forEach(e => e.style.display = logged ? "inline-block" : "none");
     document.querySelectorAll(".nav-username").forEach(e => e.textContent = localStorage.getItem("currentUserName") || "");
@@ -167,68 +140,100 @@ const headerHTML = `
   document.addEventListener("click", e => {
     if (e.target.matches(".logout-btn")) {
       e.preventDefault();
-      localStorage.removeItem("currentUser");
+      localStorage.removeItem("token");
       localStorage.removeItem("currentUserName");
       showToast("Logged out");
       updateNav();
-      setTimeout(() => (window.location.href = "index.html"), 700);
+      setTimeout(() => window.location.href = "index.html", 700);
     }
   });
 
-  /* ================= SIGNUP ================= */
-
-  const signup = document.getElementById("signupForm");
-  if (signup) {
-    signup.addEventListener("submit", e => {
+  /* ================= SIGNUP API ================= */
+  const signupForm = document.getElementById("signupForm");
+  if (signupForm) {
+    signupForm.addEventListener("submit", async e => {
       e.preventDefault();
-      const { name, email, password } = signup;
-      if (!name.value || !email.value || !password.value) {
+      const name = signupForm.name.value.trim();
+      const email = signupForm.email.value.trim();
+      const mobile = signupForm.mobile.value.trim();
+      const password = signupForm.password.value;
+
+      if (!name || !email || !mobile || !password) {
         showToast("Please complete the form");
         return;
       }
-      const users = JSON.parse(localStorage.getItem("users") || "[]");
-      if (users.find(u => u.email === email.value)) {
-        showToast("User already exists");
-        return;
+
+      try {
+        const res = await fetch(`${BASE_URL}/auth/signup`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, mobile, password })
+        });
+        const result = await res.json();
+        if (res.ok) {
+          showToast(result.message);
+          setTimeout(() => window.location.href = "login.html", 800);
+        } else {
+          showToast(result.message);
+        }
+      } catch (err) {
+        console.error(err);
+        showToast("Server error");
       }
-      users.push({ name: name.value, email: email.value, password: password.value });
-      localStorage.setItem("users", JSON.stringify(users));
-      showToast("Signup successful");
-      setTimeout(() => (window.location.href = "login.html"), 800);
     });
   }
 
- /* ================= FINAL CAPTCHA FIX ================= */
-(function () {
-  const form = document.getElementById("loginForm");
-  const questionSpan = document.getElementById("captchaQuestion");
-  const answerInput = document.getElementById("captchaAnswer");
+  /* ================= LOGIN API + CAPTCHA ================= */
+  const loginForm = document.getElementById("loginForm");
+  if (loginForm) {
+    const captchaQ = document.getElementById("captchaQuestion");
+    const captchaA = document.getElementById("captchaAnswer");
+    if (captchaQ && captchaA) {
+      const a = Math.floor(Math.random() * 9) + 1;
+      const b = Math.floor(Math.random() * 9) + 1;
+      const correct = a + b;
+      captchaQ.textContent = `${a} + ${b} = ?`;
 
-  if (!form || !questionSpan || !answerInput) return;
+      loginForm.addEventListener("submit", async e => {
+        e.preventDefault();
+        if (Number(captchaA.value) !== correct) {
+          showToast("Incorrect CAPTCHA");
+          captchaA.focus();
+          return;
+        }
 
-  // Generate numbers
-  const a = Math.floor(Math.random() * 9) + 1;
-  const b = Math.floor(Math.random() * 9) + 1;
-  const correctAnswer = a + b;
+        const email = loginForm.email.value.trim();
+        const password = loginForm.password.value;
 
-  // FORCE render question
-  questionSpan.innerHTML = `${a} + ${b} = ?`;
+        if (!email || !password) {
+          showToast("Please enter email & password");
+          return;
+        }
 
-  // Validate
-  form.addEventListener("submit", function (e) {
-    const userAnswer = Number(answerInput.value);
-
-    if (userAnswer !== correctAnswer) {
-      e.preventDefault();
-      alert("Incorrect CAPTCHA. Please try again.");
-      answerInput.focus();
+        try {
+          const res = await fetch(`${BASE_URL}/auth/login`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ email, password })
+});
+          const result = await res.json();
+          if (res.ok) {
+            localStorage.setItem("token", result.token);
+            localStorage.setItem("currentUserName", result.user.name);
+            showToast("Login successful");
+            setTimeout(() => window.location.href = "../index.html", 700);
+          } else {
+            showToast(result.message);
+          }
+        } catch (err) {
+          console.error(err);
+          showToast("Server error");
+        }
+      });
     }
-  });
-})();
-
+  }
 
   /* ================= CONTACT FORM ================= */
-
   const contact = document.getElementById("contactForm");
   if (contact) {
     contact.addEventListener("submit", e => {
@@ -242,26 +247,21 @@ const headerHTML = `
     });
   }
 
-/* ================= PROJECT FORM + WHATSAPP CONFIRMATION (FIXED) ================= */
-
-const project = document.getElementById("projectForm");
-if (project) {
-  project.addEventListener("submit", e => {
-    e.preventDefault();
-
-    const name = project.name?.value.trim();
-    const email = project.email?.value.trim();
-    const phone = project.phone?.value.trim();
-    const slot = project.slot?.value || "Not specified";
-    const description = project.description?.value.trim();
-
-    if (!name || !email || !phone || !description) {
-      showToast("Please fill all required fields");
-      return;
-    }
-
-    /* ---------- WhatsApp Message ---------- */
-    const message = `
+  /* ================= PROJECT FORM ================= */
+  const project = document.getElementById("projectForm");
+  if (project) {
+    project.addEventListener("submit", e => {
+      e.preventDefault();
+      const name = project.name?.value.trim();
+      const email = project.email?.value.trim();
+      const phone = project.phone?.value.trim();
+      const slot = project.slot?.value || "Not specified";
+      const description = project.description?.value.trim();
+      if (!name || !email || !phone || !description) {
+        showToast("Please fill all required fields");
+        return;
+      }
+      const message = `
 Hello OSF Team 👋
 
 I’ve booked a *Free Consultation Call*.
@@ -273,29 +273,16 @@ Preferred Slot: ${slot}
 
 Requirement:
 ${description}
-    `;
-
-    const whatsappURL =
-      "https://wa.me/917067548217?text=" +
-      encodeURIComponent(message);
-
-    // ✅ MUST be called directly from click
-    window.open(whatsappURL, "_blank");
-
-    showToast("Booking submitted successfully!");
-
-    // Redirect AFTER WhatsApp opens
-    setTimeout(() => {
-      window.location.href = "success.html";
-    }, 600);
-
-    project.reset();
-  });
-}
-
+      `;
+      const whatsappURL = "https://wa.me/917067548217?text=" + encodeURIComponent(message);
+      window.open(whatsappURL, "_blank");
+      showToast("Booking submitted successfully!");
+      setTimeout(() => window.location.href = "success.html", 600);
+      project.reset();
+    });
+  }
 
   /* ================= PORTFOLIO FILTER ================= */
-
   document.querySelectorAll(".filter-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
@@ -308,7 +295,6 @@ ${description}
   });
 
   /* ================= ACTIVE NAV LINK ================= */
-
   const current = location.pathname.split("/").pop() || "index.html";
   document.querySelectorAll(".nav a").forEach(a => {
     if (a.getAttribute("href") === current) a.classList.add("active");
@@ -316,22 +302,20 @@ ${description}
 
 });
 /* ================= SCROLL ANIMATION ================= */
-
 const revealObserver = new IntersectionObserver(
   entries => {
-    entries.forEach(entry=>{
-      if(entry.isIntersecting){
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
         entry.target.classList.add("active");
         revealObserver.unobserve(entry.target);
       }
     });
   },
-  { threshold:0.18 }
+  { threshold: 0.18 }
 );
-
 document.querySelectorAll(
   ".card, .process-card, .stat-box, .port-card, .contact-info, .hire-form-card"
-).forEach(el=>{
+).forEach(el => {
   el.classList.add("reveal");
   revealObserver.observe(el);
 });
