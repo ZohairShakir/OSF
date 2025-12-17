@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // For production: your deployed URL
   const BASE_URL = window.location.hostname.includes("localhost")
   ? "http://localhost:4000/api"
-  : "http://127.0.0.1:4000/api";
+  : "https://osf-seven.vercel.app/api";
 
 
   // ===== FORCE CLIENT THEME =====
