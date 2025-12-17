@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # osf-website
 
 Merged and rebuilt website for "Our Startup Freelancer".
@@ -30,3 +31,6 @@ Merged and rebuilt website for "Our Startup Freelancer".
 ## Customize
 - Replace `assets/images/*` with your real images.
 - Tweak `css/styles.css` to refine spacing/typography.
+=======
+# OSF
+>>>>>>> c5bfe0d76b01199fdfd5038c6677ae6441dbdced
