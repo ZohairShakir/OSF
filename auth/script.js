@@ -17,66 +17,95 @@ document.addEventListener("DOMContentLoaded", () => {
   if (captchaQ) captchaQ.textContent = `What is ${a} + ${b}?`;
 
   /* ========== SIGNUP ========== */
-  const signupForm = document.getElementById("signupForm");
-  if (signupForm) {
-    signupForm.addEventListener("submit", e => {
-      e.preventDefault();
+  /* ========== SIGNUP ========== */
+const signupForm = document.getElementById("signupForm");
 
-      const data = {
-        username: signupForm.username.value.trim(),
-        email: signupForm.email.value.trim(),
-        mobile: signupForm.mobile.value.trim(),
-        password: signupForm.password.value
-      };
+if (signupForm) {
+  signupForm.addEventListener("submit", async e => {
+    e.preventDefault();
 
-      if (!Object.values(data).every(v => v)) {
-        alert("Please fill all fields");
+    const data = {
+      name: signupForm.username.value.trim(),
+      email: signupForm.email.value.trim(),
+      mobile: signupForm.mobile.value.trim(),
+      password: signupForm.password.value
+    };
+
+    if (!Object.values(data).every(v => v)) {
+      alert("Please fill all fields");
+      return;
+    }
+
+    try {
+      const res = await fetch(`${BASE_URL}/auth/signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        alert(result.message || "Signup failed");
         return;
       }
-
-      const users = JSON.parse(localStorage.getItem("users") || "[]");
-      if (users.find(u => u.email === data.email)) {
-        alert("User already exists");
-        return;
-      }
-
-      users.push(data);
-      localStorage.setItem("users", JSON.stringify(users));
 
       alert("Signup successful");
       window.location.href = "login.html";
-    });
-  }
 
-  /* ========== LOGIN ========== */
-  const loginForm = document.getElementById("loginForm");
-  if (loginForm) {
-    loginForm.addEventListener("submit", e => {
-      e.preventDefault();
+    } catch (err) {
+      alert("Server error. Try again later.");
+      console.error(err);
+    }
+  });
+}
 
-      const captchaInput = document.getElementById("captchaAnswer").value;
-      if (parseInt(captchaInput) !== answer) {
-        alert("CAPTCHA incorrect");
+
+/* ========== LOGIN ========== */
+const loginForm = document.getElementById("loginForm");
+
+if (loginForm) {
+  loginForm.addEventListener("submit", async e => {
+    e.preventDefault();
+
+    // CAPTCHA check
+    const captchaInput = document.getElementById("captchaAnswer").value;
+    if (parseInt(captchaInput) !== answer) {
+      alert("CAPTCHA incorrect");
+      return;
+    }
+
+    const payload = {
+      email: loginForm.email.value.trim(),
+      password: loginForm.password.value
+    };
+
+    try {
+      const res = await fetch(`${BASE_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || "Invalid credentials");
         return;
       }
 
-      const email = loginForm.email.value.trim();
-      const password = loginForm.password.value;
-
-      const users = JSON.parse(localStorage.getItem("users") || "[]");
-      const user = users.find(u => u.email === email && u.password === password);
-
-      if (!user) {
-        alert("Invalid credentials");
-        return;
-      }
-
-      localStorage.setItem("currentUser", user.email);
-      localStorage.setItem("currentUserName", user.username);
+      // ✅ REAL AUTH STORAGE
+      localStorage.setItem("osf_token", data.token);
+      localStorage.setItem("osf_user", JSON.stringify(data.user));
 
       alert("Login successful");
-      window.location.href = "../index.html";
-    });
-  }
+      window.location.href = "../dashboard/dashboard.html";
 
+    } catch (err) {
+      alert("Server error. Try again later.");
+      console.error(err);
+    }
+  });
+}
 });
+

@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // For production: your deployed URL
   const BASE_URL = window.location.hostname.includes("localhost")
   ? "http://localhost:4000/api"
-  : "https://osf-seven.vercel.app/api";
+  : "http://127.0.0.1:4000/api";
 
 
   // ===== FORCE CLIENT THEME =====
@@ -129,24 +129,40 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ================= AUTH NAV STATE ================= */
-  const updateNav = () => {
-    const logged = !!localStorage.getItem("token");
-    document.querySelectorAll(".nav-auth").forEach(e => e.style.display = logged ? "none" : "inline-block");
-    document.querySelectorAll(".nav-logout").forEach(e => e.style.display = logged ? "inline-block" : "none");
-    document.querySelectorAll(".nav-username").forEach(e => e.textContent = localStorage.getItem("currentUserName") || "");
-  };
-  updateNav();
+const updateNav = () => {
+  const token = localStorage.getItem("osf_token");
+  const user = JSON.parse(localStorage.getItem("osf_user") || "null");
+  const logged = !!token;
+
+  document.querySelectorAll(".nav-auth").forEach(el => {
+    el.style.display = logged ? "none" : "inline-block";
+  });
+
+  document.querySelectorAll(".nav-logout").forEach(el => {
+    el.style.display = logged ? "inline-block" : "none";
+  });
+
+  document.querySelectorAll(".nav-username").forEach(el => {
+    el.textContent = logged && user?.name ? user.name : "";
+  });
+};
+
+updateNav();
+
 
   document.addEventListener("click", e => {
-    if (e.target.matches(".logout-btn")) {
-      e.preventDefault();
-      localStorage.removeItem("token");
-      localStorage.removeItem("currentUserName");
-      showToast("Logged out");
-      updateNav();
-      setTimeout(() => window.location.href = "index.html", 700);
-    }
-  });
+  if (e.target.matches(".logout-btn")) {
+    e.preventDefault();
+
+    localStorage.removeItem("osf_token");
+    localStorage.removeItem("osf_user");
+    localStorage.removeItem("osf_onboarded");
+
+    updateNav();
+    window.location.href = "index.html";
+  }
+});
+
 
   /* ================= SIGNUP API ================= */
   const signupForm = document.getElementById("signupForm");
@@ -218,13 +234,18 @@ document.addEventListener("DOMContentLoaded", () => {
 });
           const result = await res.json();
           if (res.ok) {
-            localStorage.setItem("token", result.token);
-            localStorage.setItem("currentUserName", result.user.name);
-            showToast("Login successful");
-            setTimeout(() => window.location.href = "../index.html", 700);
-          } else {
-            showToast(result.message);
-          }
+  localStorage.setItem("osf_token", result.token);
+  localStorage.setItem(
+    "osf_user",
+    JSON.stringify(result.user)
+  );
+
+  showToast("Login successful");
+  setTimeout(() => {
+    window.location.href = "../dashboard.html";
+  }, 700);
+}
+
         } catch (err) {
           console.error(err);
           showToast("Server error");

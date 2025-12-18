@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dashboard — Our Startup Freelancer</title>
+
+  <!-- Global styles (already in your project) -->
+  <link rel="stylesheet" href="../css/styles.css">
+
+  <!-- Dashboard specific (we will add next) -->
+  <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+
+  <!-- ================= HEADER (Injected / Reused) ================= -->
+  <header id="site-header"></header>
+
+  <!-- ================= DASHBOARD ================= -->
+  <main class="dashboard">
+
+    <!-- ===== TOP SECTION / WELCOME ===== -->
+    <section class="dashboard-top container">
+      <div class="welcome-block">
+        <h1>Welcome, <span id="userName">Client</span> 👋</h1>
+        <p class="muted">
+          Here’s a quick overview of your account and ongoing work.
+        </p>
+      </div>
+
+      <div class="status-cards">
+        <div class="status-card">
+          <strong id="activeProjects">0</strong>
+          <span>Active Projects</span>
+        </div>
+        <div class="status-card">
+          <strong id="pendingActions">0</strong>
+          <span>Pending Actions</span>
+        </div>
+        <div class="status-card">
+          <strong id="unreadMessages">0</strong>
+          <span>Unread Messages</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== PRIMARY CTA (ABOVE THE FOLD) ===== -->
+    <section class="dashboard-cta container">
+      <button class="btn btn-primary" id="postProjectBtn">
+        + Post a New Project
+      </button>
+    </section>
+
+    <!-- ===== MAIN GRID ===== -->
+    <section class="dashboard-main container">
+
+      <!-- ===== PROJECTS OVERVIEW ===== -->
+      <div class="dashboard-section projects-section">
+        <div class="section-header">
+          <h2>Your Projects</h2>
+        </div>
+
+        <!-- Projects list -->
+        <div class="projects-grid" id="projectsGrid">
+
+          <!-- Example project card (JS will render) -->
+          <!--
+          <div class="project-card">
+            <h3>Website Redesign</h3>
+            <p class="muted">Assigned to: UI Team</p>
+            <div class="project-meta">
+              <span class="status in-progress">In Progress</span>
+              <span class="deadline">Due: 25 Sep 2025</span>
+            </div>
+          </div>
+          -->
+
+        </div>
+
+        <!-- Empty state -->
+        <div class="empty-state" id="noProjects">
+          <p>You haven’t posted a project yet.</p>
+          <button class="btn btn-primary">
+            Post Your First Project
+          </button>
+        </div>
+      </div>
+
+      <!-- ===== RIGHT COLUMN ===== -->
+      <aside class="dashboard-side">
+
+        <!-- ===== MESSAGES ===== -->
+        <div class="dashboard-section messages-section">
+          <div class="section-header">
+            <h3>Messages & Updates</h3>
+          </div>
+
+          <div class="message-preview">
+            <p class="muted">
+              No new messages yet.
+            </p>
+          </div>
+
+          <a href="#" class="link">
+            View all messages →
+          </a>
+        </div>
+
+        <!-- ===== BILLING ===== -->
+        <div class="dashboard-section billing-section">
+          <div class="section-header">
+            <h3>Billing Snapshot</h3>
+          </div>
+
+          <div class="billing-info">
+            <p>
+              <strong>Status:</strong>
+              <span class="billing-status">No invoices yet</span>
+            </p>
+            <p>
+              <strong>Last payment:</strong>
+              —
+            </p>
+          </div>
+
+          <a href="#" class="link">
+            View billing details →
+          </a>
+        </div>
+
+      </aside>
+    </section>
+
+    <!-- ===== FIRST-TIME USER GUIDANCE ===== -->
+    <section class="dashboard-onboarding container" id="onboardingBox">
+      <h3>What would you like to do today?</h3>
+      <div class="onboarding-actions">
+        <button class="btn btn-primary">Post a Project</button>
+        <button class="btn">Talk to an Expert</button>
+        <button class="btn">Explore Services</button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= FOOTER ================= -->
+  <footer id="site-footer"></footer>
+
+  <!-- ================= SCRIPTS ================= -->
+  <script src="../js/script.js"></script>
+  <script src="../js/dashboard.js"></script>
+
+</body>
+</html>

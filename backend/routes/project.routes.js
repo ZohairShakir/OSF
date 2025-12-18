@@ -1,8 +1,13 @@
 import express from "express";
-import { submitProject } from "../controllers/project.controller.js";
+import authMiddleware from "../middleware/auth.middleware.js";
+import {
+  submitProject,
+  getMyProjects
+} from "../controllers/project.controller.js";
 
 const router = express.Router();
 
-router.post("/", submitProject);
+router.post("/", authMiddleware, submitProject);
+router.get("/my", authMiddleware, getMyProjects);
 
 export default router;
