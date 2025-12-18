@@ -1,36 +1,64 @@
-<<<<<<< HEAD
-# osf-website
+# Our Startup Freelancer (OSF)
 
-Merged and rebuilt website for "Our Startup Freelancer".
+**Our Startup Freelancer (OSF)** is a modern full-stack web platform that connects startups and businesses with skilled freelancers to build, launch, and scale digital products efficiently.
 
-## What is included
-- Home, Services, Portfolio, Contact, Hire Us, Request Project pages.
-- Auth pages in `/auth`: signup + login using `localStorage` (demo only).
-- Single global CSS: `css/styles.css`
-- Single global JS: `js/script.js`
-- Assets folder for images.
+The platform includes authentication, project requests, a client dashboard, and a scalable backend architecture ready for real-world deployment.
 
-## How to use locally
-1. Download or clone this repo.
-2. (Optional) Serve with a lightweight server:
-   - Python: `python -m http.server 8000`
-   - Open: `http://localhost:8000`
-3. Or open `index.html` directly.
+---
 
-## Auth details (demo)
-- Signup stores users in `localStorage` (`users` array).
-- Login sets `currentUser` and `currentUserName` in `localStorage`.
-- Logout clears them. No server involved.
+## 🚀 Features
 
-## Deploy
-- You can host on GitHub Pages, Netlify, or Vercel. For GitHub Pages:
-  - Push repo to GitHub.
-  - In repo Settings → Pages → select `main` branch root.
-  - Wait a minute and open the provided URL.
+### 🔐 Authentication
+- User signup & login with JWT-based authentication
+- Secure password hashing using **bcrypt**
+- Protected routes using auth middleware
 
-## Customize
-- Replace `assets/images/*` with your real images.
-- Tweak `css/styles.css` to refine spacing/typography.
-=======
-# OSF
->>>>>>> c5bfe0d76b01199fdfd5038c6677ae6441dbdced
+### 📊 Client Dashboard
+- Personalized welcome experience
+- Project overview & onboarding flow
+- Persistent login using JWT + LocalStorage
+
+### 🧾 Project Requests
+- Submit project requirements
+- Structured backend storage
+- Ready for freelancer assignment logic
+
+### 🌐 Frontend
+- Clean, premium UI
+- Responsive layout
+- Client-focused user experience
+
+### 🛠 Backend
+- REST API built with **Node.js & Express**
+- MongoDB database with **Mongoose**
+- Environment-based configuration
+- Modular controllers & routes
+
+---
+
+## 🧱 Tech Stack
+
+### Frontend
+- HTML5
+- CSS3
+- JavaScript (Vanilla)
+- Fetch API
+
+### Backend
+- Node.js
+- Express.js
+- MongoDB
+- Mongoose
+- JWT Authentication
+- bcrypt
+- dotenv
+
+### Deployment
+- Frontend: **Vercel**
+- Backend: **Render**
+- Database: **MongoDB Atlas**
+
+---
+
+## 📁 Project Structure
+
