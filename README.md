@@ -53,11 +53,6 @@ The platform includes authentication, project requests, a client dashboard, and 
 - bcrypt
 - dotenv
 
-### Deployment
-- Frontend: **Vercel**
-- Backend: **Render**
-- Database: **MongoDB Atlas**
-
 ---
 
 ## 📁 Project Structure
