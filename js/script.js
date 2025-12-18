@@ -77,7 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <h4>Contact</h4>
         <ul class="footer-contact">
           <li>📍 Navlakha, Indore</li>
-          <li>✉️ <a href="mailto:info@ourstartupfreelancer.com">info@ourstartupfreelancer.com</a></li>
+          <li>✉️ <a href="https://mail.google.com/mail/?view=cm&fs=1&to=info@ourstartupfreelancer.com">info@ourstartupfreelancer.com</a></li>
           <li>💬 <a href="https://wa.me/917067548217" target="_blank">Chat on WhatsApp</a></li>
         </ul>
       </div>
