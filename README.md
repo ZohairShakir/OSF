@@ -55,5 +55,3 @@ The platform includes authentication, project requests, a client dashboard, and 
 
 ---
 
-## 📁 Project Structure
-
