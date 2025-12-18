@@ -23,9 +23,16 @@ export const signup = async (req, res) => {
 };
 
 export const login = async (req, res) => {
-  const { email, password } = req.body;
+  const { identifier, password } = req.body;
 
-  const user = await User.findOne({ email });
+  if (!identifier || !password) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
+
+  const user = await User.findOne({
+    $or: [{ email: identifier }, { mobile: identifier }]
+  });
+
   if (!user)
     return res.status(400).json({ message: "Invalid credentials" });
 
@@ -44,7 +51,8 @@ export const login = async (req, res) => {
     user: {
       id: user._id,
       name: user.name,
-      email: user.email
+      email: user.email,
+      mobile: user.mobile
     }
   });
 };

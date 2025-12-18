@@ -151,18 +151,15 @@ updateNav();
 
 
   document.addEventListener("click", e => {
-  if (e.target.matches(".logout-btn")) {
-    e.preventDefault();
-
-    localStorage.removeItem("osf_token");
-    localStorage.removeItem("osf_user");
-    localStorage.removeItem("osf_onboarded");
-
-    updateNav();
-    window.location.href = "index.html";
-  }
-});
-
+    if (e.target.matches(".logout-btn")) {
+      e.preventDefault();
+      localStorage.removeItem("osf_token");
+      localStorage.removeItem("osf_user");
+      showToast("Logged out");
+      updateNav();
+      setTimeout(() => window.location.href = "index.html", 700);
+    }
+  });
 
   /* ================= SIGNUP API ================= */
   const signupForm = document.getElementById("signupForm");
@@ -218,10 +215,10 @@ updateNav();
           return;
         }
 
-        const email = loginForm.email.value.trim();
+        const identifier = loginForm.identifier.value.trim();
         const password = loginForm.password.value;
 
-        if (!email || !password) {
+        if (!identifier || !password) {
           showToast("Please enter email & password");
           return;
         }
@@ -230,7 +227,7 @@ updateNav();
           const res = await fetch(`${BASE_URL}/auth/login`, {
   method: "POST",
   headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ email, password })
+  body: JSON.stringify({ identifier, password })
 });
           const result = await res.json();
           if (res.ok) {
