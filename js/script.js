@@ -251,20 +251,53 @@ updateNav();
     }
   }
 
-  /* ================= CONTACT FORM ================= */
-  const contact = document.getElementById("contactForm");
-  if (contact) {
-    contact.addEventListener("submit", e => {
-      e.preventDefault();
-      if (![contact.name, contact.email, contact.message].every(i => i.value.trim())) {
-        showToast("Please complete the form");
-        return;
-      }
-      showToast("Message sent successfully ✅");
-      contact.reset();
-    });
-  }
+  
+/* ================= CONTACT FORM ================= */
+const contact = document.getElementById("contactForm");
 
+if (contact) {
+  contact.addEventListener("submit", e => {
+    e.preventDefault();
+
+    const name = contact.elements["name"].value.trim();
+    const email = contact.elements["email"].value.trim();
+    const message = contact.elements["message"].value.trim();
+    const subject = contact.elements["subject"]?.value || "General Inquiry";
+
+    if (!name || !email || !message) {
+      showToast("Please complete the form");
+      return;
+    }
+
+    const gmailSubject = encodeURIComponent(`Contact: ${subject}`);
+    const gmailBody = encodeURIComponent(
+`Hello OSF Team 👋
+
+You have received a new message from the website contact form.
+
+Name: ${name}
+Email: ${email}
+Subject: ${subject}
+
+Message:
+${message}
+`
+    );
+
+    const gmailURL =
+      `https://mail.google.com/mail/?view=cm&fs=1` +
+      `&to=info@ourstartupfreelancer.com` +
+      `&su=${gmailSubject}` +
+      `&body=${gmailBody}`;
+
+    showToast("Opening Gmail… ✉️");
+
+    setTimeout(() => {
+      window.open(gmailURL, "_blank");
+      contact.reset();
+    }, 600);
+  });
+}
   /* ================= PROJECT FORM ================= */
   const project = document.getElementById("projectForm");
   if (project) {
