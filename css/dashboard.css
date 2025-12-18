@@ -24,7 +24,14 @@
   font-weight: 800;
   margin-bottom: 6px;
 }
-
+.menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 26px;
+  color: #e5e7eb;
+  cursor: pointer;
+}
 .welcome-block p {
   max-width: 420px;
 }

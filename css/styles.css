@@ -2027,3 +2027,51 @@ body::after{
   background-size:4px 4px;
   opacity:.22;
 }
+/* ===== REMOVE ALL DECORATIVE BARS ===== */
+
+.section::before,
+.section::after,
+.header::after,
+.hero::after,
+.hero::before,
+body::after{
+  display:none !important;
+  content:none !important;
+}
+/* ===== PORTFOLIO IMAGE GLITCH FIX (CSS ONLY) ===== */
+
+.port-card{
+  overflow:hidden;
+  transform:translateZ(0);          /* GPU acceleration */
+  backface-visibility:hidden;
+}
+
+.port-card img{
+  display:block;
+  width:100%;
+  height:260px;
+  object-fit:cover;
+
+  /* smooth render */
+  transform:translateZ(0) scale(1);
+  backface-visibility:hidden;
+
+  /* fade-in illusion */
+  animation: imgFade .6s ease forwards;
+}
+
+@keyframes imgFade{
+  from{
+    opacity:0;
+    transform:scale(1.04);
+  }
+  to{
+    opacity:1;
+    transform:scale(1);
+  }
+}
+
+/* hover effect (SAFE) */
+.port-card:hover img{
+  transform:scale(1.12);
+}
