@@ -1,31 +1,57 @@
-import dotenv from "dotenv";
-dotenv.config();                 // ✅ LOAD ENV FIRST
-
 import express from "express";
+import mongoose from "mongoose";
 import cors from "cors";
-import connectDB from "./config/db.js";
+import dotenv from "dotenv";
+import authRoutes from "./routes/auth.js";
 
-import authRoutes from "./routes/auth.routes.js";
-import contactRoutes from "./routes/contact.routes.js";
-import projectRoutes from "./routes/project.routes.js";
-
-connectDB();                     // ✅ CONNECT AFTER ENV
-console.log("MONGO_URI:", process.env.MONGO_URI);
+dotenv.config();
 
 const app = express();
+const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+// Middleware
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: false,
+  })
+);
 app.use(express.json());
 
+// Routes
 app.use("/api/auth", authRoutes);
-app.use("/api/contact", contactRoutes);
-app.use("/api/project", projectRoutes);
 
-app.get("/", (req, res) => {
-  res.json({ message: "OSF Backend Running" });
-});
+// MongoDB connection
+const MONGO_URI = process.env.MONGO_URI || "";
 
-const PORT = process.env.PORT || 4000;
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server running on port ${PORT}`);
-});
+if (!MONGO_URI) {
+  console.warn(
+    "No MONGO_URI provided. Auth endpoints will respond with 503 (service unavailable)."
+  );
+
+  app.use((req, res) => {
+    res
+      .status(503)
+      .json({ message: "Database not configured. Please set MONGO_URI." });
+  });
+
+  app.listen(PORT, () => {
+    console.log(`Server running in NO-DB mode on port ${PORT}`);
+  });
+} else {
+  mongoose
+    .connect(MONGO_URI, {
+      serverSelectionTimeoutMS: 5000,
+    })
+    .then(() => {
+      console.log("MongoDB connected");
+      app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+      });
+    })
+    .catch((err) => {
+      console.error("MongoDB connection error:", err.message);
+      process.exit(1);
+    });
+}
+
