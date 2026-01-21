@@ -2,6 +2,7 @@ import React from 'react';
 import logoImg from "../../assets/d34b86f0961d0d1520ac70a77af0e95fab8002ae.png";
 import { Heart } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { FaWhatsapp, FaPhone, FaEnvelope } from 'react-icons/fa';
 
 export const Footer = () => {
   const navigate = useNavigate();
@@ -26,36 +27,35 @@ export const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-16 pb-16">
           <div className="col-span-1 md:col-span-2 space-y-8">
             <div className="flex items-center gap-3">
-              <img src={logoImg} alt="Logo" className="h-10 w-auto brightness-0 invert" />
+              <img src={logoImg} alt="Logo" className="h-10 w-auto brightness-100 rounded-full" />
               <span className="font-bold text-2xl tracking-tight">Our Startup Freelancer</span>
             </div>
             <p className="text-gray-400 max-w-sm text-lg font-light leading-relaxed">
               Empowering the next generation of startups with world-class design and engineering talent.
             </p>
             <div className="flex gap-4">
-              {/* Quick contact links */}
-              <a
-                href="https://wa.me/919424871885"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 transition-colors cursor-pointer flex items-center justify-center"
-              >
-                <span className="sr-only">WhatsApp</span>
-              </a>
-              <a
-                href="tel:+919424871885"
-                className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 transition-colors cursor-pointer flex items-center justify-center"
-              >
-                <span className="sr-only">Call</span>
-              </a>
-              <a
-                href="mailto:info@ourstartupfreelancer.com"
-                className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 transition-colors cursor-pointer flex items-center justify-center"
-              >
-                <span className="sr-only">Email</span>
-              </a>
+  <a
+    href="https://wa.me/919424871885"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 transition-colors cursor-pointer flex items-center justify-center text-white text-xl"
+  >
+    <FaWhatsapp />
+  </a>
+  <a
+    href="tel:+919424871885"
+    className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 transition-colors cursor-pointer flex items-center justify-center text-white text-xl"
+  >
+    <FaPhone />
+  </a>
+  <a
+    href="mailto:info@ourstartupfreelancer.com"
+    className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 transition-colors cursor-pointer flex items-center justify-center text-white text-xl"
+  >
+    <FaEnvelope />
+  </a>
+</div>
             </div>
-          </div>
           
           <div>
             <h4 className="font-bold text-lg mb-8 text-white">Links</h4>
