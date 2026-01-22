@@ -54,7 +54,7 @@ export const Navbar = () => {
               className="h-12 w-auto object-contain group-hover:scale-105 transition-transform duration-300" 
             />
             <span className="font-bold text-xl tracking-tight text-gray-900 group-hover:text-blue-600 transition-colors">
-              Our Startup <br></br>Freelancer
+              Our Startup <br></br><span className="bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">Freelancer</span>
             </span>
           </Link>
 
