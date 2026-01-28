@@ -20,7 +20,7 @@ const generateToken = (user: any) => {
 // @desc    Register a new user (Client or Admin)
 router.post('/signup', async (req, res) => {
   try {
-    const { name, email, password, company, role } = req.body;
+    const { name, email, password, company } = req.body;
 
     // 1. Validation
     if (!name || !email || !password) {
@@ -33,18 +33,23 @@ router.post('/signup', async (req, res) => {
       return res.status(409).json({ message: 'An account with this email already exists' });
     }
 
-    // 3. Create User
+    // 3. Derive role from email domain
+    const normalizedEmail = email.toLowerCase();
+    const isOsfAdmin = normalizedEmail.endsWith('@ourstartupfreelancer.com');
+    const derivedRole = isOsfAdmin ? 'admin' : 'client';
+
+    // 4. Create User
     const user = new User({
       name,
-      email: email.toLowerCase(),
+      email: normalizedEmail,
       password, // Hashing happens in User model pre-save hook
       company,
-      role: role || 'client'
+      role: derivedRole
     });
 
     await user.save();
 
-    // 4. Respond
+    // 5. Respond
     const token = generateToken(user);
     res.status(201).json({
       token,

@@ -1,4 +1,5 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import { authenticate, authorize } from '../middleware/auth';
 import Project from '../models/Project';
 import ActivityLog from '../models/ActivityLog';
@@ -22,7 +23,24 @@ router.get('/', authenticate, async (req: any, res) => {
 // Admin: Create Project
 router.post('/', authenticate, authorize(['admin']), async (req: any, res) => {
   try {
-    const project = new Project(req.body);
+    const { title, description, clientId } = req.body;
+
+    if (!title || !description) {
+      return res.status(400).json({ message: 'Title and description are required' });
+    }
+
+    // If clientId is not a valid ObjectId, fall back to the current user for now
+    const isValidClientId = clientId && mongoose.Types.ObjectId.isValid(clientId);
+    const resolvedClientId = isValidClientId ? clientId : req.user._id;
+
+    const project = new Project({
+      clientId: resolvedClientId,
+      title,
+      description,
+      // allow optional fields from body but never override clientId
+      ...(req.body || {}),
+    });
+
     await project.save();
     
     await new ActivityLog({
@@ -34,6 +52,7 @@ router.post('/', authenticate, authorize(['admin']), async (req: any, res) => {
 
     res.status(201).json(project);
   } catch (error) {
+    console.error('Create project error:', error);
     res.status(400).json({ message: 'Invalid project parameters' });
   }
 });
