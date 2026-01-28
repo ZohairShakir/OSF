@@ -1,0 +1,71 @@
+import express from 'express';
+import { authenticate, authorize } from '../middleware/auth';
+import Project from '../models/Project';
+import ActivityLog from '../models/ActivityLog';
+import Message from '../models/Message';
+
+const router = express.Router();
+
+// Fetch Projects
+router.get('/', authenticate, async (req: any, res) => {
+  try {
+    const query = req.user.role === 'admin' ? {} : { clientId: req.user._id };
+    const projects = await Project.find(query)
+      .populate('clientId', 'name email company avatar')
+      .sort({ updatedAt: -1 });
+    res.json(projects);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to retrieve projects' });
+  }
+});
+
+// Admin: Create Project
+router.post('/', authenticate, authorize(['admin']), async (req: any, res) => {
+  try {
+    const project = new Project(req.body);
+    await project.save();
+    
+    await new ActivityLog({
+      projectId: project._id,
+      type: 'stage_change',
+      content: `System: Initialized new operation "${project.title}"`,
+      actorId: req.user._id
+    }).save();
+
+    res.status(201).json(project);
+  } catch (error) {
+    res.status(400).json({ message: 'Invalid project parameters' });
+  }
+});
+
+// Admin: Patch Updates (Stage/Progress)
+router.patch('/:id', authenticate, authorize(['admin']), async (req: any, res) => {
+  try {
+    const project = await Project.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!project) return res.status(404).json({ message: 'Project not found' });
+    
+    if (req.body.stage) {
+      await new ActivityLog({
+        projectId: project._id,
+        type: 'stage_change',
+        content: `Phase Update: Advanced to ${req.body.stage}`,
+        actorId: req.user._id
+      }).save();
+
+      await new Message({
+        projectId: project._id,
+        senderId: req.user._id,
+        senderName: 'OSF Protocol',
+        senderRole: 'admin',
+        text: `Operation milestone updated: ${req.body.stage} phase is now active.`,
+        isSystem: true
+      }).save();
+    }
+
+    res.json(project);
+  } catch (error) {
+    res.status(400).json({ message: 'Operation update failed' });
+  }
+});
+
+export default router;

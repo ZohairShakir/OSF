@@ -1,70 +1,152 @@
-# Startup Freelancer Platform
+# OSF Platform - Our Startup Freelancer
 
-A full-stack freelancing platform built to connect clients with skilled freelancers through a clean, scalable, and efficient web application.
+Full-stack application with separate frontend and backend.
 
----
+## 📁 Project Structure
 
-## Overview
+```
+osff/
+├── backend/     # Node.js + Express + MongoDB API
+└── frontend/    # React + Vite + TypeScript
+```
 
-Startup Freelancer is a web-based platform that allows clients to post projects and hire freelancers, while freelancers can showcase their skills, apply for jobs, and manage ongoing work. The system is designed with a strong focus on performance, security, and maintainability.
+## 🚀 Quick Start
 
----
+### 1. Setup Backend
 
-## Features
+```bash
+cd backend
+npm install
+npm run dev
+```
 
-### User Management
-- Client and freelancer registration and authentication
-- Role-based access control
-- Secure login system
+Backend runs on: **http://localhost:5000**
 
-### Project Management
-- Clients can create, update, and manage projects
-- Freelancers can browse and apply for projects
-- Project status tracking (active, completed, pending)
+### 2. Setup Frontend (New Terminal)
 
-### Dashboard
-- Separate dashboards for clients and freelancers
-- Overview of projects and applications
-- Centralized project management
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-### Communication
-- Project-related interaction between clients and freelancers
-- Status updates and workflow visibility
+Frontend runs on: **http://localhost:3000**
 
-### Performance and Scalability
-- Optimized REST APIs
-- Scalable architecture for future feature expansion
+## 📋 Prerequisites
 
----
+- Node.js 18+ installed
+- MongoDB Atlas account (or local MongoDB)
+- `.env` file in `backend/` folder (see setup below)
 
-## Tech Stack
+## ⚙️ Backend Setup
 
-### Frontend
-- React.js
-- HTML5
-- CSS3
-- JavaScript
-- Responsive design principles
+1. **Navigate to backend:**
+   ```bash
+   cd backend
+   ```
 
-### Backend
-- Node.js
-- Express.js
-- RESTful API architecture
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-### Database
-- MongoDB
+3. **Create `.env` file:**
+   ```env
+   MONGODB_URI=mongodb+srv://osf_user:05SzNWixQJ0l8q1c@osf.kuz3xkc.mongodb.net/osfdb?retryWrites=true&w=majority&appName=OSF
+   PORT=5000
+   JWT_SECRET=osf_secret_key_2025_secure_production
+   CLIENT_URL=http://localhost:3000
+   ```
 
-### Authentication and Security
-- JSON Web Tokens (JWT)
-- Secure password hashing
-- Protected routes and middleware
+4. **Start server:**
+   ```bash
+   npm run dev
+   ```
 
----
+## ⚙️ Frontend Setup
 
-## Architecture
+1. **Navigate to frontend:**
+   ```bash
+   cd frontend
+   ```
 
-The platform follows the MERN stack architecture:
-- Modular React frontend
-- Express and Node.js backend
-- MongoDB for data persistence
-- Clear separation of concerns for maintainable code
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Start dev server:**
+   ```bash
+   npm run dev
+   ```
+
+## 🎯 Development Workflow
+
+**Terminal 1 - Backend:**
+```bash
+cd backend
+npm run dev
+```
+
+**Terminal 2 - Frontend:**
+```bash
+cd frontend
+npm run dev
+```
+
+Visit: **http://localhost:3000**
+
+## 📚 Documentation
+
+- `PROJECT_STRUCTURE.md` - Project organization
+- `CASE_STUDY.md` - Complete technical documentation
+- `DEPLOYMENT_GUIDE.md` - Production deployment guide
+
+## 🛠️ Tech Stack
+
+**Backend:**
+- Node.js + Express
+- TypeScript
+- MongoDB (Mongoose)
+- JWT Authentication
+
+**Frontend:**
+- React 18
+- TypeScript
+- Vite
+- React Router
+- Framer Motion
+- Tailwind CSS
+
+## 📝 Scripts
+
+### Backend:
+- `npm run dev` - Start development server
+- `npm start` - Start production server
+- `npm run build` - Build TypeScript
+
+### Frontend:
+- `npm run dev` - Start Vite dev server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+
+## 🔧 Troubleshooting
+
+**Port 5000 in use:**
+```bash
+# Windows
+netstat -ano | findstr :5000
+taskkill /PID <PID> /F
+```
+
+**Port 3000 in use:**
+Change port in `frontend/vite.config.ts`
+
+**MongoDB connection error:**
+- Check `.env` file in `backend/` folder
+- Verify MongoDB Atlas IP whitelist
+- Check internet connection
+
+## 📞 Support
+
+See documentation files for detailed information.
