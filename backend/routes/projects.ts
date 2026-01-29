@@ -29,12 +29,27 @@ router.post('/', authenticate, authorize(['admin']), async (req: any, res) => {
       return res.status(400).json({ message: 'Title and description are required' });
     }
 
-    // If clientId is not a valid ObjectId, fall back to the current user for now
-    const isValidClientId = clientId && mongoose.Types.ObjectId.isValid(clientId);
-    const resolvedClientId = isValidClientId ? clientId : req.user._id;
+    if (!clientId) {
+      return res.status(400).json({ message: 'Client ID is required' });
+    }
+
+    // Validate clientId is a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(clientId)) {
+      return res.status(400).json({ message: 'Invalid client ID format' });
+    }
+
+    // Verify the client exists and is actually a client
+    const User = require('../models/User').default;
+    const client = await User.findById(clientId);
+    if (!client) {
+      return res.status(404).json({ message: 'Client not found' });
+    }
+    if (client.role !== 'client') {
+      return res.status(400).json({ message: 'Selected user is not a client' });
+    }
 
     const project = new Project({
-      clientId: resolvedClientId,
+      clientId,
       title,
       description,
       // allow optional fields from body but never override clientId

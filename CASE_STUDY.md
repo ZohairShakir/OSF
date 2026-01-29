@@ -493,6 +493,134 @@ The OSF platform has been transformed from a partially functional prototype into
 
 ---
 
-**Document Version:** 2.0  
-**Date:** 2024  
+---
+
+## 17. Recent Enhancements (Latest Update)
+
+### 17.1 Client-Project Assignment System
+**Problem:** All clients could see all projects, creating a continuity and privacy issue.
+
+**Solution:**
+- Implemented client-specific project filtering based on `clientId`
+- Modified backend project creation to require and validate `clientId`
+- Updated `ClientDashboard` to only display projects assigned to the logged-in client
+- Added client validation in backend to ensure selected user is actually a client
+
+**Impact:** Clients now only see their own projects, ensuring proper data isolation and privacy.
+
+### 17.2 Searchable Client Dropdown for Project Creation
+**Problem:** Admins had to manually type client IDs when creating projects, leading to errors.
+
+**Solution:**
+- Created `/api/auth/clients` endpoint to fetch all clients (admin only)
+- Built searchable dropdown component with real-time filtering
+- Added search by name, email, or company
+- Implemented proper client selection with visual feedback
+- Added dropdown close-on-outside-click functionality
+
+**Impact:** Admins can now easily search and select clients when creating projects, reducing errors and improving UX.
+
+### 17.3 Functional Clients Management Section
+**Problem:** Clients section was displaying placeholder data with non-functional actions.
+
+**Solution:**
+- Fetched real client data from backend API
+- Displayed client information: name, email, company, avatar, project count, status
+- Implemented functional action menu with:
+  - **View Projects**: Shows all projects for selected client
+  - **Copy Email**: Copies client email to clipboard
+  - **Deactivate**: Toggles client active/inactive status
+- Added `/api/auth/clients/:id/deactivate` endpoint for client status management
+- Added client project count and last login information
+
+**Impact:** Admins can now effectively manage clients with real data and actionable controls.
+
+### 17.4 Completed Projects Archive
+**Problem:** No way to view completed projects separately from active ones.
+
+**Solution:**
+- Added "Completed" section to admin sidebar navigation
+- Created `AdminCompletedProjects` component displaying all projects with `status: 'completed'`
+- Filtered projects by completion status
+- Added visual distinction with emerald/green theme for completed projects
+- Displayed completion date and final project details
+- Added empty state for when no projects are completed
+
+**Impact:** Admins can now easily view and manage completed projects in a dedicated archive section.
+
+### 17.5 AI Integration Fix
+**Problem:** AI insights feature was not working due to API key access issues.
+
+**Solution:**
+- Fixed API key access to support multiple environment variable formats
+- Added fallback mechanisms: `process.env.API_KEY`, `process.env.GEMINI_API_KEY`, `import.meta.env.VITE_GEMINI_API_KEY`
+- Improved error handling with specific messages for API key configuration issues
+- Enhanced error messages to guide users when AI is unavailable
+
+**Impact:** AI insights feature now works correctly with proper API key configuration.
+
+### 17.6 Project Completion Feature
+**Problem:** No way to mark projects as completed.
+
+**Solution:**
+- Added completion checkmark button in `AdminProjects` component
+- Button updates project status to 'completed' when clicked
+- Visual feedback with emerald checkmark icon
+- Completed projects automatically appear in Completed Projects section
+- Updated `updateProjectStage` function to support status updates
+
+**Impact:** Admins can now mark projects as completed, and they automatically move to the archive.
+
+---
+
+## 18. Technical Implementation Details
+
+### 18.1 Backend API Endpoints Added
+- `GET /api/auth/clients` - Fetch all clients (admin only)
+- `PATCH /api/auth/clients/:id/deactivate` - Toggle client active status
+- Enhanced `POST /api/projects` - Now requires and validates `clientId`
+
+### 18.2 Frontend Components Enhanced
+- `AdminProjects` - Added searchable client dropdown, completion button
+- `AdminClients` - Complete rewrite with real data and functional actions
+- `AdminCompletedProjects` - New component for completed projects archive
+- `ClientDashboard` - Enhanced to filter projects by `clientId`
+
+### 18.3 Type Updates
+- Added `lastLogin?: string | Date` to `User` interface
+- Enhanced project filtering logic for client-specific views
+
+---
+
+## 19. Summary of Latest Changes
+
+**New Features:**
+- ✅ Client-specific project views
+- ✅ Searchable client dropdown for project creation
+- ✅ Functional clients management section
+- ✅ Completed projects archive
+- ✅ Project completion feature
+- ✅ Fixed AI integration
+
+**Backend Changes:**
+- 2 new API endpoints
+- Enhanced project creation validation
+- Client status management
+
+**Frontend Changes:**
+- 1 new component (`AdminCompletedProjects`)
+- Enhanced 3 existing components
+- Improved user experience across admin dashboard
+
+**Total Files Modified:** 5
+- `backend/routes/auth.ts`
+- `backend/routes/projects.ts`
+- `frontend/pages/Dashboard.tsx`
+- `frontend/types.ts`
+- `CASE_STUDY.md`
+
+---
+
+**Document Version:** 3.0  
+**Date:** January 2025  
 **Status:** ✅ Complete & Production Ready

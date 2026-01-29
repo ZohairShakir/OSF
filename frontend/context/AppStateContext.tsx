@@ -23,7 +23,11 @@ interface AppStateContextType {
   files: ProjectFile[];
   activities: ActivityLog[];
   addProject: (project: any) => Promise<void>;
-  updateProjectStage: (projectId: string, stage: ProjectStage) => Promise<void>;
+  updateProjectStage: (
+    projectId: string,
+    stage: ProjectStage,
+    status?: 'active' | 'completed' | 'paused'
+  ) => Promise<void>;
   sendMessage: (projectId: string, text: string, isSystem?: boolean) => Promise<void>;
   addFile: (projectId: string, fileData: any) => Promise<void>;
   subscribeEmail: (email: string) => Promise<void>;
@@ -100,14 +104,21 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     if (res.ok) refreshData();
   };
 
-  const updateProjectStage = async (projectId: string, stage: ProjectStage) => {
+  const updateProjectStage = async (
+    projectId: string,
+    stage: ProjectStage,
+    status?: 'active' | 'completed' | 'paused'
+  ) => {
     const stages = ['Discovery', 'Design', 'Development', 'Review', 'Launch'];
     const progressPercent = Math.round(((stages.indexOf(stage) + 1) / stages.length) * 100);
     
+    const body: any = { stage, progressPercent };
+    if (status) body.status = status;
+
     const res = await fetch(`${API_PROJECTS}/${projectId}`, {
       method: 'PATCH',
       headers: getHeaders(),
-      body: JSON.stringify({ stage, progressPercent })
+      body: JSON.stringify(body)
     });
     if (res.ok) refreshData();
   };

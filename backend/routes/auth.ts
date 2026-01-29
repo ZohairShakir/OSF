@@ -134,4 +134,50 @@ router.get('/me', authenticate, async (req: any, res) => {
   }
 });
 
+// @route   GET /api/auth/clients
+// @desc    Get all clients (admin only)
+router.get('/clients', authenticate, async (req: any, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Admin access required' });
+    }
+    
+    const clients = await User.find({ role: 'client' })
+      .select('name email company avatar isActive lastLogin')
+      .sort({ name: 1 });
+    
+    res.json(clients);
+  } catch (error) {
+    console.error('Fetch clients error:', error);
+    res.status(500).json({ message: 'Server error fetching clients' });
+  }
+});
+
+// @route   PATCH /api/auth/clients/:id/deactivate
+// @desc    Deactivate/activate a client (admin only)
+router.patch('/clients/:id/deactivate', authenticate, async (req: any, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Admin access required' });
+    }
+    
+    const client = await User.findById(req.params.id);
+    if (!client) {
+      return res.status(404).json({ message: 'Client not found' });
+    }
+    
+    if (client.role !== 'client') {
+      return res.status(400).json({ message: 'Can only deactivate clients' });
+    }
+    
+    client.isActive = !client.isActive;
+    await client.save();
+    
+    res.json({ message: `Client ${client.isActive ? 'activated' : 'deactivated'} successfully`, client });
+  } catch (error) {
+    console.error('Deactivate client error:', error);
+    res.status(500).json({ message: 'Server error updating client status' });
+  }
+});
+
 export default router;

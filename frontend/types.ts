@@ -8,6 +8,7 @@ export interface User {
   company?: string;
   avatar?: string;
   isActive: boolean;
+  lastLogin?: string | Date;
 }
 
 export interface Project {

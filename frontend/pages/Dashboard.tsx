@@ -1,12 +1,12 @@
 
-    import React, { useState, useEffect } from 'react';
+    import React, { useState, useEffect, useRef } from 'react';
     import { Routes, Route, Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
     import { motion, AnimatePresence } from 'framer-motion';
     import { 
     LayoutDashboard, MessageSquare, Files, LogOut, 
     Bell, Menu, X, CheckCircle2, Download, Plus, Send, Rocket, FileText, 
     Users, Shield, ChevronRight, Search, 
-    Edit3, MoreVertical, Sparkles, Loader2
+    Edit3, MoreVertical, Sparkles, Loader2, ChevronDown
     } from 'lucide-react';
     import { useAuth } from '../context/AuthContext';
     import { useAppState } from '../context/AppStateContext';
@@ -52,7 +52,18 @@
     const [showNotifications, setShowNotifications] = useState(false);
 
     const handleLogout = () => { logout(); navigate('/'); };
-    const clientProject = projects.find((p: Project) => p.clientId === user?.id) || projects[0];
+
+    // Only show projects that belong to this client
+    const ownedProjects = projects.filter((p: Project) => {
+      if (!user) return false;
+      if (typeof p.clientId === 'string') {
+        return p.clientId === user.id;
+      }
+      const cid = (p.clientId as Partial<User>).id;
+      return cid === user.id;
+    });
+
+    const clientProject = ownedProjects[0];
 
     return (
         <div className="bg-slate-950 min-h-screen flex text-slate-300">
@@ -155,7 +166,14 @@
         if (!project) return;
         setIsAiLoading(true);
         try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        // Try multiple ways to get API key (vite config defines process.env.API_KEY from GEMINI_API_KEY)
+        const apiKey = (process.env as any).API_KEY || (process.env as any).GEMINI_API_KEY || import.meta.env.VITE_GEMINI_API_KEY;
+        
+        if (!apiKey) {
+            throw new Error('API key not configured. Please set GEMINI_API_KEY in .env file');
+        }
+        
+        const ai = new GoogleGenAI({ apiKey });
         const response = await ai.models.generateContent({
             model: 'gemini-3-flash-preview',
             contents: `Analyze this project and give 3 strategic next steps to accelerate growth:
@@ -167,9 +185,11 @@
             }
         });
         setAiInsight(response.text || "Unable to generate insights at this time.");
-        } catch (err) {
-        console.error(err);
-        setAiInsight("AI Consultant temporarily offline. Please try again later.");
+        } catch (err: any) {
+        console.error('AI Error:', err);
+        setAiInsight(err.message?.includes('API key') 
+            ? "AI API key not configured. Please contact admin." 
+            : "AI Consultant temporarily offline. Please try again later.");
         } finally {
         setIsAiLoading(false);
         }
@@ -319,6 +339,7 @@
             <AdminSidebarLink to="/dashboard/admin/messages" icon={<MessageSquare size={18} />} label="Inbox" />
             <AdminSidebarLink to="/dashboard/admin/clients" icon={<Users size={18} />} label="Clients" />
             <AdminSidebarLink to="/dashboard/admin/projects" icon={<Rocket size={18} />} label="Master Hub" />
+            <AdminSidebarLink to="/dashboard/admin/completed" icon={<CheckCircle2 size={18} />} label="Completed" />
             </nav>
             
             <div className="p-6 bg-slate-950/50 border-t border-white/5">
@@ -346,6 +367,7 @@
                 <Route path="/messages" element={<AdminMessages />} />
                 <Route path="/clients" element={<AdminClients projects={projects} />} />
                 <Route path="/projects" element={<AdminProjects />} />
+                <Route path="/completed" element={<AdminCompletedProjects />} />
             </Routes>
             </div>
         </main>
@@ -764,73 +786,409 @@
     };
 
     const AdminClients = ({ projects }: { projects: Project[] }) => {
-    const uniqueClients = projects.reduce((acc: any[], p) => {
-        const clientId = typeof p.clientId === 'string' ? p.clientId : (p.clientId as Partial<User>)?.id || 'unknown';
-        if (!acc.find(c => c.id === clientId)) {
-        acc.push({ id: clientId, company: 'Partner Enterprise', status: 'ACTIVE' });
-        }
-        return acc;
+    const [clients, setClients] = useState<User[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [selectedClient, setSelectedClient] = useState<string | null>(null);
+    const [actionMenuOpen, setActionMenuOpen] = useState<string | null>(null);
+
+    useEffect(() => {
+        fetchClients();
     }, []);
 
+    const fetchClients = async () => {
+        setIsLoading(true);
+        try {
+            const token = localStorage.getItem('osf_token');
+            if (!token) return;
+            
+            const res = await fetch('http://localhost:5000/api/auth/clients', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (res.ok) {
+                const data = await res.json();
+                setClients(data);
+            }
+        } catch (err) {
+            console.error('Failed to fetch clients:', err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const getClientProjects = (clientId: string) => {
+        return projects.filter(p => {
+            const pid = typeof p.clientId === 'string' ? p.clientId : (p.clientId as Partial<User>)?.id;
+            return pid === clientId;
+        });
+    };
+
+    const handleViewProjects = (clientId: string) => {
+        setSelectedClient(clientId);
+        setActionMenuOpen(null);
+    };
+
+    const handleDeactivateClient = async (clientId: string) => {
+        if (!confirm('Are you sure you want to deactivate this client?')) return;
+        
+        try {
+            const token = localStorage.getItem('osf_token');
+            if (!token) return;
+            
+            // Note: You'll need to add this endpoint to the backend
+            const res = await fetch(`http://localhost:5000/api/auth/clients/${clientId}/deactivate`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (res.ok) {
+                fetchClients();
+                setActionMenuOpen(null);
+            }
+        } catch (err) {
+            console.error('Failed to deactivate client:', err);
+            alert('Failed to deactivate client');
+        }
+    };
+
     return (
+        <div className="space-y-6">
         <div className="bg-slate-900 border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
-        <div className="p-8 border-b border-white/5 flex justify-between items-center bg-slate-950/50">
+            <div className="p-8 border-b border-white/5 flex justify-between items-center bg-slate-950/50">
             <h3 className="font-black text-white uppercase text-[10px] tracking-[0.4em]">Client Infrastructure</h3>
+            <span className="text-[9px] font-black uppercase text-slate-500 tracking-widest">{clients.length} Active Partners</span>
+            </div>
+            {isLoading ? (
+            <div className="p-16 text-center">
+                <Loader2 className="w-8 h-8 text-indigo-500 animate-spin mx-auto mb-4" />
+                <p className="text-slate-500 text-sm">Loading clients...</p>
+            </div>
+            ) : (
+            <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                <thead className="text-[9px] uppercase font-black text-slate-500 border-b border-white/5 bg-slate-950/20">
+                    <tr>
+                    <th className="px-8 py-6">Partner Identity</th>
+                    <th className="px-8 py-6">Contact</th>
+                    <th className="px-8 py-6">Projects</th>
+                    <th className="px-8 py-6">Lifecycle Status</th>
+                    <th className="px-8 py-6 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                    {clients.map(client => {
+                    const clientProjects = getClientProjects(client.id);
+                    return (
+                    <tr key={client.id} className="hover:bg-white/2 transition-all">
+                        <td className="px-8 py-8">
+                        <div className="flex items-center gap-5">
+                            <img src={client.avatar} alt={client.name} className="w-12 h-12 rounded-2xl bg-indigo-600 border border-indigo-500 object-cover shadow-lg" />
+                            <div>
+                            <p className="font-black text-white text-base tracking-tight">{client.name}</p>
+                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{client.company || 'No company'}</p>
+                            </div>
+                        </div>
+                        </td>
+                        <td className="px-8 py-8">
+                        <p className="text-slate-400 text-sm font-medium">{client.email}</p>
+                        {client.lastLogin && (
+                            <p className="text-[9px] text-slate-600 font-black uppercase tracking-widest mt-1">
+                            Last active: {new Date(client.lastLogin).toLocaleDateString()}
+                            </p>
+                        )}
+                        </td>
+                        <td className="px-8 py-8">
+                        <div className="flex items-center gap-3">
+                            <span className="text-indigo-400 font-black text-lg">{clientProjects.length}</span>
+                            <span className="text-[9px] text-slate-500 uppercase tracking-widest">Active Projects</span>
+                        </div>
+                        </td>
+                        <td className="px-8 py-8">
+                        <span className={`px-4 py-1.5 rounded-full font-black uppercase tracking-widest text-[9px] border ${
+                            client.isActive 
+                            ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' 
+                            : 'bg-slate-700/10 text-slate-500 border-slate-700/20'
+                        }`}>
+                            {client.isActive ? 'ACTIVE' : 'INACTIVE'}
+                        </span>
+                        </td>
+                        <td className="px-8 py-8 text-right">
+                        <div className="relative inline-block">
+                            <button 
+                            onClick={() => setActionMenuOpen(actionMenuOpen === client.id ? null : client.id)}
+                            className="p-3 text-slate-600 hover:text-white hover:bg-white/5 rounded-xl transition-all"
+                            >
+                            <MoreVertical size={18} />
+                            </button>
+                            {actionMenuOpen === client.id && (
+                            <div className="absolute right-0 mt-2 w-48 bg-slate-900 border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden">
+                                <button
+                                onClick={() => handleViewProjects(client.id)}
+                                className="w-full text-left px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors flex items-center gap-3"
+                                >
+                                <Rocket size={16} className="text-indigo-400" />
+                                View Projects ({clientProjects.length})
+                                </button>
+                                <button
+                                onClick={() => {
+                                    navigator.clipboard.writeText(client.email);
+                                    setActionMenuOpen(null);
+                                    alert('Email copied to clipboard');
+                                }}
+                                className="w-full text-left px-4 py-3 text-sm text-white hover:bg-white/5 transition-colors flex items-center gap-3"
+                                >
+                                <FileText size={16} className="text-slate-400" />
+                                Copy Email
+                                </button>
+                                {client.isActive && (
+                                <button
+                                    onClick={() => handleDeactivateClient(client.id)}
+                                    className="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-3"
+                                >
+                                    <X size={16} />
+                                    Deactivate
+                                </button>
+                                )}
+                            </div>
+                            )}
+                        </div>
+                        </td>
+                    </tr>
+                    );
+                    })}
+                </tbody>
+                </table>
+            </div>
+            )}
         </div>
-        <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-            <thead className="text-[9px] uppercase font-black text-slate-500 border-b border-white/5 bg-slate-950/20">
-                <tr>
-                <th className="px-8 py-6">Partner Identity</th>
-                <th className="px-8 py-6">Lifecycle Status</th>
-                <th className="px-8 py-6 text-right">Actions</th>
-                </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-                {uniqueClients.map(client => (
-                <tr key={client.id} className="hover:bg-white/2 transition-all">
-                    <td className="px-8 py-8">
-                    <div className="flex items-center gap-5">
-                        <div className="w-12 h-12 rounded-2xl bg-slate-800 border border-white/5 flex items-center justify-center text-xs font-black text-indigo-400 shadow-lg">{client.id.charAt(0).toUpperCase()}</div>
+        
+        {selectedClient && (
+            <div className="bg-slate-900 border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
+            <div className="p-8 border-b border-white/5 flex justify-between items-center bg-slate-950/50">
+                <h3 className="font-black text-white uppercase text-[10px] tracking-[0.4em]">
+                Projects for {clients.find(c => c.id === selectedClient)?.name}
+                </h3>
+                <button 
+                onClick={() => setSelectedClient(null)}
+                className="text-slate-500 hover:text-white transition-colors"
+                >
+                <X size={20} />
+                </button>
+            </div>
+            <div className="p-8">
+                {getClientProjects(selectedClient).length > 0 ? (
+                <div className="space-y-4">
+                    {getClientProjects(selectedClient).map(project => (
+                    <div key={project.id} className="p-6 bg-slate-950/50 border border-white/5 rounded-2xl hover:border-indigo-500/30 transition-all">
+                        <div className="flex items-center justify-between">
                         <div>
-                        <p className="font-black text-white text-base tracking-tight">{client.id}</p>
-                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{client.company}</p>
+                            <h4 className="font-black text-white text-lg mb-2">{project.title}</h4>
+                            <p className="text-slate-400 text-sm mb-3">{project.description}</p>
+                            <div className="flex items-center gap-4">
+                            <span className="text-[9px] font-black uppercase text-slate-500 tracking-widest">Stage: {project.stage}</span>
+                            <span className="text-[9px] font-black uppercase text-indigo-400 tracking-widest">Progress: {project.progressPercent}%</span>
+                            </div>
+                        </div>
+                        <Link 
+                            to="/dashboard/admin/projects"
+                            className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-indigo-500 transition-colors"
+                        >
+                            View Details
+                        </Link>
                         </div>
                     </div>
-                    </td>
-                    <td className="px-8 py-8">
-                    <span className="bg-emerald-500/10 text-emerald-500 px-4 py-1.5 rounded-full font-black uppercase tracking-widest text-[9px] border border-emerald-500/20">{client.status}</span>
-                    </td>
-                    <td className="px-8 py-8 text-right">
-                    <button className="p-3 text-slate-600 hover:text-white hover:bg-white/5 rounded-xl transition-all"><MoreVertical size={18} /></button>
-                    </td>
-                </tr>
-                ))}
-            </tbody>
-            </table>
-        </div>
+                    ))}
+                </div>
+                ) : (
+                <div className="py-16 text-center text-slate-500">
+                    <Rocket size={48} className="mx-auto mb-4 opacity-20" />
+                    <p className="text-sm font-black uppercase tracking-widest">No projects assigned</p>
+                </div>
+                )}
+            </div>
+            </div>
+        )}
         </div>
     );
     }
 
+    const AdminCompletedProjects = () => {
+    const { projects } = useAppState();
+    const completedProjects = projects.filter((p: Project) => p.status === 'completed');
+
+    return (
+        <div className="space-y-6">
+        <div className="flex items-center justify-between mb-8">
+            <div>
+            <h2 className="text-4xl font-black text-white mb-2 tracking-tight">Completed Projects</h2>
+            <p className="text-slate-500 text-lg font-medium">Archive of successfully delivered operations</p>
+            </div>
+            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl px-6 py-4">
+            <div className="text-emerald-400 font-black text-3xl tracking-tighter">{completedProjects.length}</div>
+            <div className="text-[9px] font-black uppercase text-emerald-500 tracking-widest mt-1">COMPLETED</div>
+            </div>
+        </div>
+
+        {completedProjects.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {completedProjects.map((p: Project) => {
+                const clientName = typeof p.clientId === 'string' 
+                    ? 'Client' 
+                    : (p.clientId as Partial<User>)?.name || 'Client';
+                const clientEmail = typeof p.clientId === 'string' 
+                    ? '' 
+                    : (p.clientId as Partial<User>)?.email || '';
+                
+                return (
+                <div key={p.id} className="bg-slate-900/50 border border-emerald-500/20 rounded-[2.5rem] p-10 hover:border-emerald-500/40 transition-all duration-500 flex flex-col justify-between shadow-2xl group relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-8 opacity-10">
+                    <CheckCircle2 size={120} className="text-emerald-500" />
+                    </div>
+                    
+                    <div className="relative z-10">
+                    <div className="flex justify-between items-start mb-6">
+                        <div className="w-16 h-16 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-400 border border-emerald-500/20 group-hover:bg-emerald-500 group-hover:text-slate-950 transition-all shadow-xl">
+                        <CheckCircle2 size={28} />
+                        </div>
+                        <div className="text-[9px] font-black uppercase tracking-[0.3em] px-4 py-1.5 bg-emerald-500/10 text-emerald-400 rounded-full border border-emerald-500/20">COMPLETED</div>
+                    </div>
+                    
+                    <h4 className="text-2xl font-black text-white mb-3 tracking-tight group-hover:text-emerald-400 transition-colors">{p.title}</h4>
+                    <p className="text-sm text-slate-400 mb-6 leading-relaxed font-medium line-clamp-3">{p.description}</p>
+                    
+                    <div className="space-y-4 pt-6 border-t border-white/5">
+                        <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest">
+                        <span className="text-slate-500">Client</span>
+                        <span className="text-white">{clientName}</span>
+                        </div>
+                        {clientEmail && (
+                        <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest">
+                            <span className="text-slate-500">Email</span>
+                            <span className="text-slate-400 text-[9px]">{clientEmail}</span>
+                        </div>
+                        )}
+                        <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest">
+                        <span className="text-slate-500">Final Stage</span>
+                        <span className="text-emerald-400">{p.stage}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest">
+                        <span className="text-slate-500">Progress</span>
+                        <span className="text-white">{p.progressPercent}%</span>
+                        </div>
+                        <div className="h-2 bg-slate-950 rounded-full overflow-hidden border border-white/5 mt-4">
+                        <div className="h-full bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.6)] transition-all duration-1000" style={{ width: `${p.progressPercent}%` }}></div>
+                        </div>
+                        <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-widest mt-4 pt-4 border-t border-white/5">
+                        <span className="text-slate-600">Completed</span>
+                        <span className="text-slate-400">{new Date(p.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+                );
+            })}
+            </div>
+        ) : (
+            <div className="py-32 text-center glass-card rounded-[3rem] border border-white/10">
+            <CheckCircle2 size={80} className="mx-auto text-slate-700 mb-6 opacity-20" />
+            <h3 className="text-3xl font-black text-white mb-4">No Completed Projects Yet</h3>
+            <p className="text-slate-500 max-w-md mx-auto">Projects marked as completed will appear here. Keep building! 🚀</p>
+            </div>
+        )}
+        </div>
+    );
+    };
+
     const AdminProjects = () => {
-    const { projects, updateProjectStage, addFile, addProject } = useAppState();
+    const { projects, updateProjectStage, addFile, addProject, refreshData } = useAppState();
     const [showModal, setShowModal] = useState(false);
-    const [newProject, setNewProject] = useState({ title: '', description: '', clientId: 'u1', targetLaunch: '2024-12-31' });
+    const [newProject, setNewProject] = useState({ title: '', description: '', clientId: '' });
+    const [clients, setClients] = useState<User[]>([]);
+    const [clientSearch, setClientSearch] = useState('');
+    const [showClientDropdown, setShowClientDropdown] = useState(false);
+    const [isLoadingClients, setIsLoadingClients] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    // Fetch clients when modal opens
+    useEffect(() => {
+        if (showModal) {
+            fetchClients();
+        }
+    }, [showModal]);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setShowClientDropdown(false);
+            }
+        };
+
+        if (showClientDropdown) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [showClientDropdown]);
+
+    const fetchClients = async () => {
+        setIsLoadingClients(true);
+        try {
+            const token = localStorage.getItem('osf_token');
+            if (!token) return;
+            
+            const res = await fetch('http://localhost:5000/api/auth/clients', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (res.ok) {
+                const data = await res.json();
+                setClients(data);
+            }
+        } catch (err) {
+            console.error('Failed to fetch clients:', err);
+        } finally {
+            setIsLoadingClients(false);
+        }
+    };
+
+    const filteredClients = clients.filter(client => 
+        client.name.toLowerCase().includes(clientSearch.toLowerCase()) ||
+        client.email.toLowerCase().includes(clientSearch.toLowerCase()) ||
+        (client.company && client.company.toLowerCase().includes(clientSearch.toLowerCase()))
+    );
+
+    const selectedClient = clients.find(c => c.id === newProject.clientId);
 
     const handleCreate = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newProject.title) return;
+        if (!newProject.title || !newProject.description || !newProject.clientId) {
+            alert('Please fill all fields including selecting a client');
+            return;
+        }
         
-        // ✅ FIX: Send ONLY schema fields
         addProject({
           title: newProject.title,
-          description: newProject.description
-          // Remove clientId & targetLaunch!
+          description: newProject.description,
+          clientId: newProject.clientId
         });
         
         setShowModal(false);
-        setNewProject({ title: '', description: '', clientId: 'u1', targetLaunch: '2024-12-31' });
+        setNewProject({ title: '', description: '', clientId: '' });
+        setClientSearch('');
+        setShowClientDropdown(false);
+        refreshData();
       };
 
     const handleUploadMock = (projectId: string) => {
@@ -862,9 +1220,25 @@
             </div>
             
             <div className="space-y-6 pt-10 border-t border-white/5">
-                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
-                <span className="text-slate-500 uppercase tracking-widest">Update State</span>
-                <span className="text-white">{p.progressPercent}%</span>
+                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest items-center">
+                  <span className="text-slate-500 uppercase tracking-widest">
+                    {p.status === 'completed' ? 'Completed' : 'Update State'}
+                  </span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-white">{p.progressPercent}%</span>
+                    <button
+                      type="button"
+                      onClick={() => updateProjectStage(p.id, 'Launch', 'completed')}
+                      className={`w-6 h-6 rounded-full border flex items-center justify-center text-[10px] ${
+                        p.status === 'completed'
+                          ? 'bg-emerald-500 border-emerald-500 text-slate-950'
+                          : 'bg-slate-900 border-slate-600 text-emerald-400 hover:bg-emerald-500 hover:border-emerald-500 hover:text-slate-950 transition-colors'
+                      }`}
+                      title="Mark project as completed"
+                    >
+                      ✓
+                    </button>
+                  </div>
                 </div>
                 <div className="h-2 bg-slate-950 rounded-full overflow-hidden border border-white/5">
                 <div className="h-full bg-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.6)] transition-all duration-1000" style={{ width: `${p.progressPercent}%` }}></div>
@@ -903,16 +1277,85 @@
                 exit={{ scale: 0.9, opacity: 0 }}
                 className="glass-card w-full max-w-lg rounded-[3rem] p-10 relative"
                 >
-                <button onClick={() => setShowModal(false)} className="absolute top-8 right-8 text-slate-500 hover:text-white"><X size={24} /></button>
+                <button 
+                    onClick={() => {
+                        setShowModal(false);
+                        setNewProject({ title: '', description: '', clientId: '' });
+                        setClientSearch('');
+                        setShowClientDropdown(false);
+                    }} 
+                    className="absolute top-8 right-8 text-slate-500 hover:text-white"
+                >
+                    <X size={24} />
+                </button>
                 <h3 className="text-2xl font-black text-white mb-8">Deploy New Sprint</h3>
                 <form onSubmit={handleCreate} className="space-y-6">
                     <div>
                     <label className="block text-[10px] font-black uppercase text-slate-500 mb-2">Project Title</label>
                     <input required value={newProject.title} onChange={e => setNewProject({...newProject, title: e.target.value})} className="w-full bg-slate-900 border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-indigo-500" placeholder="E.g. Nexus CRM" />
                     </div>
-                    <div>
-                    <label className="block text-[10px] font-black uppercase text-slate-500 mb-2">Client ID</label>
-                    <input required value={newProject.clientId} onChange={e => setNewProject({...newProject, clientId: e.target.value})} className="w-full bg-slate-900 border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-indigo-500" placeholder="E.g. u1" />
+                    <div className="relative">
+                    <label className="block text-[10px] font-black uppercase text-slate-500 mb-2">Assign Client</label>
+                    <div className="relative" ref={dropdownRef}>
+                        <div 
+                            onClick={() => setShowClientDropdown(!showClientDropdown)}
+                            className="w-full bg-slate-900 border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-indigo-500 cursor-pointer flex items-center justify-between hover:border-indigo-500/50 transition-colors"
+                        >
+                            <span className={selectedClient ? 'text-white' : 'text-slate-500'}>
+                                {selectedClient ? `${selectedClient.name}${selectedClient.company ? ` • ${selectedClient.company}` : ''}` : 'Search and select a client...'}
+                            </span>
+                            <ChevronRight size={18} className={`text-slate-500 transition-transform ${showClientDropdown ? 'rotate-90' : ''}`} />
+                        </div>
+                        {showClientDropdown && (
+                            <div className="absolute z-50 w-full mt-2 bg-slate-900 border border-white/10 rounded-2xl shadow-2xl max-h-64 overflow-hidden">
+                                <div className="p-3 border-b border-white/5">
+                                    <div className="relative">
+                                        <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500" />
+                                        <input
+                                            type="text"
+                                            value={clientSearch}
+                                            onChange={e => setClientSearch(e.target.value)}
+                                            placeholder="Search by name, email, or company..."
+                                            className="w-full bg-slate-950 border border-white/10 rounded-xl px-10 py-3 text-white text-sm focus:outline-none focus:border-indigo-500"
+                                            autoFocus
+                                        />
+                                    </div>
+                                </div>
+                                <div className="overflow-y-auto max-h-48">
+                                    {isLoadingClients ? (
+                                        <div className="p-8 text-center text-slate-500 text-sm">Loading clients...</div>
+                                    ) : filteredClients.length > 0 ? (
+                                        filteredClients.map(client => (
+                                            <button
+                                                key={client.id}
+                                                type="button"
+                                                onClick={() => {
+                                                    setNewProject({...newProject, clientId: client.id});
+                                                    setShowClientDropdown(false);
+                                                    setClientSearch('');
+                                                }}
+                                                className="w-full text-left p-4 hover:bg-white/5 transition-colors border-b border-white/5 last:border-0"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <img src={client.avatar} alt={client.name} className="w-10 h-10 rounded-xl bg-indigo-600 border border-indigo-500 object-cover" />
+                                                    <div className="flex-grow">
+                                                        <p className="text-white font-bold text-sm">{client.name}</p>
+                                                        <p className="text-slate-500 text-xs">{client.email}</p>
+                                                        {client.company && <p className="text-slate-600 text-[10px] uppercase tracking-widest mt-1">{client.company}</p>}
+                                                    </div>
+                                                    {newProject.clientId === client.id && (
+                                                        <CheckCircle2 size={18} className="text-indigo-500" />
+                                                    )}
+                                                </div>
+                                            </button>
+                                        ))
+                                    ) : (
+                                        <div className="p-8 text-center text-slate-500 text-sm">No clients found</div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
                     </div>
                     <div>
                     <label className="block text-[10px] font-black uppercase text-slate-500 mb-2">Description</label>
