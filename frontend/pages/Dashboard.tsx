@@ -76,8 +76,8 @@
 
     return (
         <div className="bg-slate-950 min-h-screen flex text-slate-300">
-        <aside className={`${isSidebarOpen ? 'w-80' : 'w-24'} bg-slate-900 border-r border-white/5 transition-all duration-300 flex flex-col fixed inset-y-0 z-50 lg:static`}>
-            <div className="p-8 flex items-center justify-between">
+        <aside className={`${isSidebarOpen ? 'w-80' : 'w-24'} bg-slate-900 border-r border-white/5 transition-all duration-300 flex flex-col fixed inset-y-0 z-50 lg:static h-screen`}>
+            <div className="p-4 lg:p-8 flex items-center justify-between flex-shrink-0">
             <Link to="/" className="relative z-10">
                 {isSidebarOpen ? <LogoNavbar size="sm" /> : <LogoIcon size={32} />}
             </Link>
@@ -86,24 +86,39 @@
             </button>
             </div>
             
-            <nav className="flex-grow px-5 space-y-2 mt-10">
+            <nav className="flex-grow px-4 lg:px-5 space-y-2 mt-4 lg:mt-10 overflow-y-auto">
             <ClientSidebarLink to="/dashboard/client" icon={<LayoutDashboard />} label="Project Hub" isOpen={isSidebarOpen} />
             <ClientSidebarLink to="/dashboard/client/messages" icon={<MessageSquare />} label="Team Chat" isOpen={isSidebarOpen} />
             <ClientSidebarLink to="/dashboard/client/files" icon={<Files />} label="Assets" isOpen={isSidebarOpen} />
             </nav>
             
-            <div className="p-6 border-t border-white/5">
-            <button onClick={handleLogout} className="w-full flex items-center gap-4 p-4 text-slate-600 hover:text-white transition-all group">
-                <LogOut size={20} className="group-hover:text-red-500 transition-colors" />
-                {isSidebarOpen && <span className="font-black text-xs uppercase tracking-widest">Sign Out</span>}
-            </button>
+            {/* Profile Section */}
+            <div className="p-4 lg:p-6 border-t border-white/5 flex-shrink-0 bg-slate-950/30">
+                {isSidebarOpen && (
+                    <div className="flex items-center gap-3 lg:gap-4 mb-4 p-3 lg:p-4 bg-slate-900/50 rounded-xl border border-white/5">
+                        <img src={user?.avatar} alt={user?.name} className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-indigo-600 border border-indigo-500 object-cover flex-shrink-0" />
+                        <div className="flex-grow min-w-0">
+                            <p className="text-white font-black text-xs lg:text-sm truncate">{user?.name}</p>
+                            <p className="text-slate-500 text-[10px] lg:text-xs font-bold uppercase tracking-widest truncate">{user?.email}</p>
+                        </div>
+                    </div>
+                )}
+                {!isSidebarOpen && (
+                    <div className="flex justify-center mb-4">
+                        <img src={user?.avatar} alt={user?.name} className="w-10 h-10 rounded-xl bg-indigo-600 border border-indigo-500 object-cover" />
+                    </div>
+                )}
+                <button onClick={handleLogout} className="w-full flex items-center gap-3 lg:gap-4 p-3 lg:p-4 text-slate-600 hover:text-white transition-all group">
+                    <LogOut size={20} className="group-hover:text-red-500 transition-colors" />
+                    {isSidebarOpen && <span className="font-black text-xs uppercase tracking-widest">Sign Out</span>}
+                </button>
             </div>
         </aside>
 
-        <main className="flex-grow flex flex-col min-w-0">
-            <header className="h-20 flex items-center justify-between px-6 md:px-12 border-b border-white/5">
-            <h2 className="text-xl font-black text-white tracking-tight">Hello, {user?.name.split(' ')[0]} 👋</h2>
-            <div className="flex items-center gap-8">
+        <main className="flex-grow flex flex-col min-w-0 ml-0 lg:ml-0">
+            <header className="h-16 lg:h-20 flex items-center justify-between px-4 md:px-6 lg:px-12 border-b border-white/5">
+            <h2 className="text-lg lg:text-xl font-black text-white tracking-tight">Hello, {user?.name.split(' ')[0]} 👋</h2>
+            <div className="flex items-center gap-4 lg:gap-8">
                 <div className="relative">
                 <button 
                     onClick={() => setShowNotifications(!showNotifications)}
@@ -146,7 +161,7 @@
             </div>
             </header>
 
-            <div className="p-6 md:p-12 flex-grow max-w-7xl">
+            <div className="p-4 md:p-6 lg:p-12 flex-grow max-w-7xl overflow-x-hidden">
             <Routes>
                 <Route path="/" element={<ClientHome project={clientProject} />} />
                 <Route path="/messages" element={<ClientMessages project={clientProject} />} />
@@ -229,13 +244,13 @@
                 <motion.div 
                 initial={{ opacity: 0, y: 20 }} 
                 animate={{ opacity: 1, y: 0 }} 
-                className="lg:col-span-2 glass-card p-14 rounded-[4rem] relative overflow-hidden group border border-indigo-500/10 shadow-2xl"
+                className="lg:col-span-2 glass-card p-6 lg:p-14 rounded-[2rem] lg:rounded-[4rem] relative overflow-hidden group border border-indigo-500/10 shadow-2xl"
                 >
                 <div className="absolute top-0 right-0 p-16 opacity-5"><Rocket size={250} className="text-indigo-400" /></div>
                 <div className="mb-14 relative z-10">
                     <span className="text-indigo-500 text-[10px] font-black uppercase tracking-[0.4em] mb-4 block">ACTIVE PROJECT PIPELINE</span>
-                    <h1 className="text-6xl font-black text-white tracking-tighter mb-6">{project.title}</h1>
-                    <p className="text-slate-400 text-xl max-w-2xl leading-relaxed font-medium">{project.description}</p>
+                    <h1 className="text-3xl lg:text-6xl font-black text-white tracking-tighter mb-4 lg:mb-6">{project.title}</h1>
+                    <p className="text-slate-400 text-base lg:text-xl max-w-2xl leading-relaxed font-medium">{project.description}</p>
                 </div>
                 <div className="space-y-8 relative z-10">
                     <div className="flex justify-between items-end">
@@ -343,24 +358,24 @@
     // ==========================================
 
     const AdminDashboard: React.FC = () => {
-    const { logout } = useAuth();
+    const { logout, user } = useAuth();
     const { projects, activities } = useAppState();
     const navigate = useNavigate();
 
     return (
         <div className="bg-slate-950 min-h-screen flex flex-col lg:flex-row text-slate-300">
         <aside className="w-full lg:w-72 bg-slate-900 border-r border-white/5 flex flex-col shadow-2xl z-50 h-screen">
-            <div className="p-8 border-b border-white/5 bg-slate-950/50 flex flex-col gap-8 flex-shrink-0">
+            <div className="p-4 lg:p-8 border-b border-white/5 bg-slate-950/50 flex flex-col gap-4 lg:gap-8 flex-shrink-0">
             <Link to="/" className="inline-block">
                 <LogoNavbar size="sm" />
             </Link>
-            <div className="bg-indigo-600/10 border border-indigo-500/20 rounded-2xl p-4 flex items-center gap-4">
-                <Shield size={20} className="text-indigo-500" />
+            <div className="bg-indigo-600/10 border border-indigo-500/20 rounded-2xl p-3 lg:p-4 flex items-center gap-3 lg:gap-4">
+                <Shield size={18} className="lg:w-5 lg:h-5 text-indigo-500" />
                 <span className="text-[10px] font-black text-white uppercase tracking-widest">Admin Control</span>
             </div>
             </div>
             
-            <nav className="flex-grow p-6 space-y-2 overflow-y-auto">
+            <nav className="flex-grow p-4 lg:p-6 space-y-2 overflow-y-auto">
             <AdminSidebarLink to="/dashboard/admin" icon={<LayoutDashboard size={18} />} label="Overview" />
             <AdminSidebarLink to="/dashboard/admin/messages" icon={<MessageSquare size={18} />} label="Inbox" />
             <AdminSidebarLink to="/dashboard/admin/clients" icon={<Users size={18} />} label="Clients" />
@@ -368,26 +383,34 @@
             <AdminSidebarLink to="/dashboard/admin/completed" icon={<CheckCircle2 size={18} />} label="Completed" />
             </nav>
             
-            <div className="p-6 bg-slate-950/50 border-t border-white/5 flex-shrink-0">
-            <button onClick={() => { logout(); navigate('/'); }} className="w-full flex items-center gap-4 p-4 text-slate-500 hover:text-red-400 transition-all text-xs font-black uppercase tracking-widest">
-                <LogOut size={18} /> Logout
-            </button>
+            {/* Profile Section */}
+            <div className="p-4 lg:p-6 border-t border-white/5 flex-shrink-0 bg-slate-950/30">
+                <div className="flex items-center gap-3 lg:gap-4 mb-4 p-3 lg:p-4 bg-slate-900/50 rounded-xl border border-white/5">
+                    <img src={user?.avatar} alt={user?.name} className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-indigo-600 border border-indigo-500 object-cover" />
+                    <div className="flex-grow min-w-0">
+                        <p className="text-white font-black text-xs lg:text-sm truncate">{user?.name}</p>
+                        <p className="text-slate-500 text-[10px] lg:text-xs font-bold uppercase tracking-widest truncate">{user?.email}</p>
+                    </div>
+                </div>
+                <button onClick={() => { logout(); navigate('/'); }} className="w-full flex items-center gap-3 lg:gap-4 p-3 lg:p-4 text-slate-500 hover:text-red-400 transition-all text-xs font-black uppercase tracking-widest">
+                    <LogOut size={18} /> Logout
+                </button>
             </div>
         </aside>
 
         <main className="flex-grow flex flex-col min-w-0 bg-slate-950">
-            <header className="h-16 bg-slate-900/30 border-b border-white/5 flex items-center justify-between px-10 backdrop-blur-md sticky top-0 z-40">
-            <div className="flex items-center gap-4 text-[9px] font-black uppercase tracking-widest text-slate-500">
-                <span>CORE</span>
-                <ChevronRight size={12} className="opacity-20" />
-                <span className="text-white uppercase tracking-widest">{useLocation().pathname.split('/').pop() || 'OVERVIEW'}</span>
+            <header className="h-14 lg:h-16 bg-slate-900/30 border-b border-white/5 flex items-center justify-between px-4 lg:px-10 backdrop-blur-md sticky top-0 z-40">
+            <div className="flex items-center gap-2 lg:gap-4 text-[8px] lg:text-[9px] font-black uppercase tracking-widest text-slate-500">
+                <span className="hidden sm:inline">CORE</span>
+                <ChevronRight size={10} className="lg:w-3 lg:h-3 opacity-20 hidden sm:inline" />
+                <span className="text-white uppercase tracking-widest truncate">{useLocation().pathname.split('/').pop() || 'OVERVIEW'}</span>
             </div>
-            <div className="flex items-center gap-6">
-                <div className="bg-emerald-500/10 text-emerald-500 text-[9px] font-black px-3 py-1.5 rounded-full tracking-[0.2em] border border-emerald-500/20">LIVE OPS ACTIVE</div>
+            <div className="flex items-center gap-3 lg:gap-6">
+                <div className="bg-emerald-500/10 text-emerald-500 text-[8px] lg:text-[9px] font-black px-2 lg:px-3 py-1 lg:py-1.5 rounded-full tracking-[0.2em] border border-emerald-500/20">LIVE OPS ACTIVE</div>
             </div>
             </header>
 
-            <div className="p-10 flex-grow overflow-y-auto">
+            <div className="p-4 lg:p-10 flex-grow overflow-y-auto">
             <Routes>
                 <Route path="/" element={<AdminHome projects={projects} activities={activities} />} />
                 <Route path="/messages" element={<AdminMessages />} />
@@ -599,7 +622,7 @@
         <AdminStat label="IP Assets" value="1.2k" color="slate" trend="Secured" />
         </div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-10">
         <div className="lg:col-span-2 bg-slate-900 border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
             <div className="p-8 border-b border-white/5 flex justify-between items-center bg-slate-950/20">
             <h3 className="font-black text-white uppercase text-[10px] tracking-[0.3em]">Master Operation Feed</h3>
@@ -607,15 +630,15 @@
             <div className="divide-y divide-white/5">
             {projects.map((p: Project) => (
                 <div key={p.id} className="p-8 flex items-center justify-between hover:bg-white/2 transition-all group">
-                <div className="flex items-center gap-6">
-                    <div className="w-14 h-14 rounded-2xl bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-center text-indigo-500 group-hover:bg-indigo-600 group-hover:text-white transition-all"><Rocket size={24} /></div>
-                    <div>
-                    <h4 className="font-black text-lg text-white group-hover:text-indigo-400 transition-colors tracking-tight">{p.title}</h4>
-                    <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-1">{p.stage} • {typeof p.clientId === 'string' ? p.clientId : (p.clientId as Partial<User>)?.name || (p.clientId as Partial<User>)?.id || 'Partner'}</p>
+                <div className="flex items-center gap-4 lg:gap-6 flex-grow min-w-0">
+                    <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-xl lg:rounded-2xl bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-center text-indigo-500 group-hover:bg-indigo-600 group-hover:text-white transition-all flex-shrink-0"><Rocket size={20} className="lg:w-6 lg:h-6" /></div>
+                    <div className="min-w-0 flex-grow">
+                    <h4 className="font-black text-base lg:text-lg text-white group-hover:text-indigo-400 transition-colors tracking-tight truncate">{p.title}</h4>
+                    <p className="text-[9px] lg:text-[10px] text-slate-500 font-black uppercase tracking-widest mt-1 truncate">{p.stage} • {typeof p.clientId === 'string' ? p.clientId : (p.clientId as Partial<User>)?.name || (p.clientId as Partial<User>)?.id || 'Partner'}</p>
                     </div>
                 </div>
-                <div className="flex items-center gap-12">
-                    <div className="w-40">
+                <div className="flex items-center gap-4 lg:gap-12 w-full sm:w-auto">
+                    <div className="flex-grow sm:w-40">
                     <div className="flex justify-between text-[9px] font-black mb-2">
                         <span className="text-slate-500 uppercase">PROGRESS</span>
                         <span className="text-white">{p.progressPercent}%</span>
@@ -656,6 +679,7 @@
     const [inputText, setInputText] = useState('');
     const [isSystemMsg, setIsSystemMsg] = useState(false);
     const [projectMessages, setProjectMessages] = useState<Message[]>([]);
+    const [showProjectDropdown, setShowProjectDropdown] = useState(false);
 
     useEffect(() => {
         if (!selectedProjectId) {
@@ -750,7 +774,7 @@
             ) : <div className="text-slate-500 font-black uppercase tracking-widest text-xs">Select a project thread</div>}
             </div>
             
-            <div className="flex-grow p-10 overflow-y-auto space-y-8">
+            <div className="flex-grow p-4 lg:p-10 overflow-y-auto space-y-6 lg:space-y-8">
             {projectMessages.length > 0 ? projectMessages.map((m: Message) => (
                 <div key={m.id} className={`flex ${m.isSystem ? 'justify-center' : m.senderId === user?.id ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[75%] p-6 rounded-[2rem] text-sm leading-relaxed ${
@@ -777,7 +801,7 @@
             )}
             </div>
             
-            <div className="p-8 bg-slate-900/60 border-t border-white/10">
+            <div className="p-4 lg:p-8 bg-slate-900/60 border-t border-white/10">
             <div className="flex items-center gap-6 mb-5">
                 <button 
                 onClick={() => setIsSystemMsg(!isSystemMsg)} 

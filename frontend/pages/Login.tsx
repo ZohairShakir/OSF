@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react';
@@ -9,10 +9,22 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<'client' | 'admin'>('client');
+  const [rememberMe, setRememberMe] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  // Check for remembered credentials on mount
+  useEffect(() => {
+    const rememberedEmail = localStorage.getItem('osf_remembered_email');
+    const rememberedRole = localStorage.getItem('osf_remembered_role') as 'client' | 'admin' | null;
+    if (rememberedEmail) {
+      setEmail(rememberedEmail);
+      setRememberMe(true);
+      if (rememberedRole) setRole(rememberedRole);
+    }
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,7 +34,7 @@ const Login: React.FC = () => {
     setIsLoggingIn(true);
     
     try {
-      await login(email, password, role);
+      await login(email, password, role, rememberMe);
       navigate(role === 'admin' ? '/dashboard/admin' : '/dashboard/client');
     } catch (err: any) {
       setError(err.message || 'Identity verification failed. Please try again.');
@@ -112,6 +124,19 @@ const Login: React.FC = () => {
                 className="w-full bg-slate-900/80 border border-slate-800 rounded-2xl px-12 py-4 text-white focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/60 transition-all text-sm font-medium placeholder:text-slate-600"
               />
             </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              id="rememberMe"
+              checked={rememberMe}
+              onChange={e => setRememberMe(e.target.checked)}
+              className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-indigo-600 focus:ring-indigo-500 focus:ring-2"
+            />
+            <label htmlFor="rememberMe" className="text-slate-400 text-xs font-medium cursor-pointer">
+              Remember me
+            </label>
           </div>
 
           <button 

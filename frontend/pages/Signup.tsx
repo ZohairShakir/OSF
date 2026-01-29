@@ -12,6 +12,7 @@ const Signup: React.FC = () => {
     company: '',
     password: ''
   });
+  const [rememberMe, setRememberMe] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { signup } = useAuth();
@@ -25,7 +26,7 @@ const Signup: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      await signup({ ...formData, role: 'client' });
+      await signup({ ...formData, role: 'client' }, rememberMe);
       navigate('/dashboard/client');
     } catch (err: any) {
       setError(err.message || 'Project initialization failed. Please check your data.');
@@ -139,6 +140,19 @@ const Signup: React.FC = () => {
                   className="w-full bg-slate-900/80 border border-slate-800 rounded-2xl px-12 py-4 text-white focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/60 transition-all text-sm font-medium placeholder:text-slate-600"
                 />
               </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                id="rememberMe"
+                checked={rememberMe}
+                onChange={e => setRememberMe(e.target.checked)}
+                className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-indigo-600 focus:ring-indigo-500 focus:ring-2"
+              />
+              <label htmlFor="rememberMe" className="text-slate-400 text-xs font-medium cursor-pointer">
+                Remember me
+              </label>
             </div>
 
             <button 

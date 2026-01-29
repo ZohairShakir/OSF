@@ -16,8 +16,8 @@ const API_BASE = getApiBase();
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password?: string, role?: string) => Promise<void>;
-  signup: (userData: any) => Promise<void>;
+  login: (email: string, password?: string, role?: string, rememberMe?: boolean) => Promise<void>;
+  signup: (userData: any, rememberMe?: boolean) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
   error: string | null;
@@ -32,11 +32,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = useCallback(() => {
     localStorage.removeItem('osf_token');
+    // Don't remove remembered email/role on logout - user might want to stay remembered
     setUser(null);
   }, []);
 
   const checkSession = useCallback(async () => {
     const token = localStorage.getItem('osf_token');
+    const rememberedEmail = localStorage.getItem('osf_remembered_email');
+    
+    // If no token but email is remembered, try to auto-login
+    if (!token && rememberedEmail) {
+      setIsLoading(false);
+      return;
+    }
+    
     if (!token) {
       setIsLoading(false);
       return;
@@ -65,7 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     checkSession();
   }, [checkSession]);
 
-  const login = async (email: string, password?: string, role?: string) => {
+  const login = async (email: string, password?: string, role?: string, rememberMe: boolean = false) => {
     setError(null);
     try {
       const response = await fetch(`${API_BASE}/login`, {
@@ -81,6 +90,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       localStorage.setItem('osf_token', data.token);
+      if (rememberMe) {
+        localStorage.setItem('osf_remembered_email', email);
+        if (role) localStorage.setItem('osf_remembered_role', role);
+      } else {
+        localStorage.removeItem('osf_remembered_email');
+        localStorage.removeItem('osf_remembered_role');
+      }
       setUser(data.user);
     } catch (err: any) {
       setError(err.message);
@@ -88,7 +104,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signup = async (userData: any) => {
+  const signup = async (userData: any, rememberMe: boolean = true) => {
     setError(null);
     try {
       const response = await fetch(`${API_BASE}/signup`, {
@@ -104,6 +120,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       localStorage.setItem('osf_token', data.token);
+      if (rememberMe) {
+        localStorage.setItem('osf_remembered_email', userData.email);
+        localStorage.setItem('osf_remembered_role', userData.role || 'client');
+      }
       setUser(data.user);
     } catch (err: any) {
       setError(err.message);
