@@ -142,18 +142,26 @@ const Signup: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="rememberMe"
-                checked={rememberMe}
-                onChange={e => setRememberMe(e.target.checked)}
-                className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-indigo-600 focus:ring-indigo-500 focus:ring-2"
-              />
-              <label htmlFor="rememberMe" className="text-slate-400 text-xs font-medium cursor-pointer">
-                Remember me
-              </label>
-            </div>
+            <div className="flex items-center gap-2">
+  <label className="flex items-center cursor-pointer relative p-1">
+    <input
+      type="checkbox"
+      id="rememberMe"
+      checked={rememberMe}
+      onChange={e => setRememberMe(e.target.checked)}
+      className="peer h-4 w-4 cursor-pointer transition-all appearance-none rounded-sm border border-slate-600/50 bg-slate-900/50 hover:border-slate-500/70 hover:shadow-sm checked:bg-indigo-600/90 checked:border-indigo-600/90 focus-visible:ring-2 focus-visible:ring-indigo-500/50"
+    />
+    <span className="absolute text-white/90 opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+      </svg>
+    </span>
+  </label>
+  <label htmlFor="rememberMe" className="text-slate-500/80 text-xs font-medium cursor-pointer select-none hover:text-slate-400/80 transition-colors">
+    Remember me
+  </label>
+</div>
+
 
             <button 
               type="submit" 
