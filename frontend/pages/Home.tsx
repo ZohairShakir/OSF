@@ -131,7 +131,7 @@ const Home: React.FC = () => {
             <p className="text-slate-400 text-xl md:text-2xl mb-12 max-w-3xl mx-auto font-medium">
               We're currently accepting limited partnerships for next month. Secure your spot in our high-velocity sprint cycle today.
             </p>
-            <div className="flex flex-col sm:flex-row justify.center gap-6">
+            <div className="flex flex-col sm:flex-row justify-center gap-6">
               <Link to="/contact" className="bg-indigo-600 text-white px-12 py-6 rounded-full text-xl font-black hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-600/40">
                 Book Strategy Audit
               </Link>
