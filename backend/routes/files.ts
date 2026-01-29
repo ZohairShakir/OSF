@@ -41,6 +41,21 @@ router.post('/', authenticate, async (req: any, res) => {
       actorId: req.user._id
     }).save();
 
+    // Send notification message to client
+    const Message = require('../models/Message').default;
+    const Project = require('../models/Project').default;
+    const project = await Project.findById(projectId);
+    if (project) {
+      await new Message({
+        projectId,
+        senderId: req.user._id,
+        senderName: 'OSF Protocol',
+        senderRole: 'admin',
+        text: `📎 New asset uploaded: ${name}`,
+        isSystem: true
+      }).save();
+    }
+
     res.status(201).json(file);
   } catch (error) {
     res.status(400).json({ message: 'Failed to upload file' });

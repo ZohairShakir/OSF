@@ -6,7 +6,7 @@
     LayoutDashboard, MessageSquare, Files, LogOut, 
     Bell, Menu, X, CheckCircle2, Download, Plus, Send, Rocket, FileText, 
     Users, Shield, ChevronRight, Search, 
-    Edit3, MoreVertical, Sparkles, Loader2, ChevronDown
+    Edit3, MoreVertical, Sparkles, Loader2, ChevronDown, Upload, CloudUpload
     } from 'lucide-react';
     import { useAuth } from '../context/AuthContext';
     import { useAppState } from '../context/AppStateContext';
@@ -46,12 +46,21 @@
 
     const ClientDashboard: React.FC = () => {
     const { user, logout } = useAuth();
-    const { projects } = useAppState();
+    const { projects, messages, refreshData } = useAppState();
     const navigate = useNavigate();
     const [isSidebarOpen, setSidebarOpen] = useState(true);
     const [showNotifications, setShowNotifications] = useState(false);
 
     const handleLogout = () => { logout(); navigate('/'); };
+
+    // Refresh messages periodically to get notifications
+    useEffect(() => {
+        refreshData();
+        const interval = setInterval(() => {
+            refreshData();
+        }, 30000); // Refresh every 30 seconds
+        return () => clearInterval(interval);
+    }, [refreshData]);
 
     // Only show projects that belong to this client
     const ownedProjects = projects.filter((p: Project) => {
@@ -104,9 +113,26 @@
                     <span className="absolute top-2 right-2 w-2 h-2 bg-indigo-500 rounded-full border-2 border-slate-950"></span>
                 </button>
                 {showNotifications && (
-                    <div className="absolute right-0 mt-4 w-64 glass-card p-4 rounded-2xl z-[60] border border-white/10">
-                    <p className="text-[10px] font-black uppercase text-slate-500 mb-2">Recent Updates</p>
-                    <div className="text-[11px] text-white">Project stage advanced to {clientProject?.stage}</div>
+                    <div className="absolute right-0 mt-4 w-80 glass-card p-4 rounded-2xl z-[60] border border-white/10 max-h-96 overflow-y-auto">
+                    <p className="text-[10px] font-black uppercase text-slate-500 mb-3">Recent Updates</p>
+                    {clientProject ? (() => {
+                        const projectMessages = messages.filter((m: Message) => m.projectId === clientProject.id && m.isSystem);
+                        const recentNotifications = projectMessages.slice(-5).reverse();
+                        return recentNotifications.length > 0 ? (
+                            <div className="space-y-3">
+                                {recentNotifications.map((m: Message) => (
+                                    <div key={m.id} className="text-[11px] text-white p-3 bg-white/5 rounded-xl border border-white/5">
+                                        {m.text}
+                                        <p className="text-[9px] text-slate-500 mt-1">{new Date(m.createdAt).toLocaleString()}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-[11px] text-slate-500">No recent updates</div>
+                        );
+                    })() : (
+                        <div className="text-[11px] text-slate-500">No project assigned</div>
+                    )}
                     </div>
                 )}
                 </div>
@@ -323,8 +349,8 @@
 
     return (
         <div className="bg-slate-950 min-h-screen flex flex-col lg:flex-row text-slate-300">
-        <aside className="w-full lg:w-72 bg-slate-900 border-r border-white/5 flex flex-col shadow-2xl z-50">
-            <div className="p-8 border-b border-white/5 bg-slate-950/50 flex flex-col gap-8">
+        <aside className="w-full lg:w-72 bg-slate-900 border-r border-white/5 flex flex-col shadow-2xl z-50 h-screen">
+            <div className="p-8 border-b border-white/5 bg-slate-950/50 flex flex-col gap-8 flex-shrink-0">
             <Link to="/" className="inline-block">
                 <LogoNavbar size="sm" />
             </Link>
@@ -334,7 +360,7 @@
             </div>
             </div>
             
-            <nav className="flex-grow p-6 space-y-2">
+            <nav className="flex-grow p-6 space-y-2 overflow-y-auto">
             <AdminSidebarLink to="/dashboard/admin" icon={<LayoutDashboard size={18} />} label="Overview" />
             <AdminSidebarLink to="/dashboard/admin/messages" icon={<MessageSquare size={18} />} label="Inbox" />
             <AdminSidebarLink to="/dashboard/admin/clients" icon={<Users size={18} />} label="Clients" />
@@ -342,7 +368,7 @@
             <AdminSidebarLink to="/dashboard/admin/completed" icon={<CheckCircle2 size={18} />} label="Completed" />
             </nav>
             
-            <div className="p-6 bg-slate-950/50 border-t border-white/5">
+            <div className="p-6 bg-slate-950/50 border-t border-white/5 flex-shrink-0">
             <button onClick={() => { logout(); navigate('/'); }} className="w-full flex items-center gap-4 p-4 text-slate-500 hover:text-red-400 transition-all text-xs font-black uppercase tracking-widest">
                 <LogOut size={18} /> Logout
             </button>
@@ -1106,7 +1132,9 @@
     };
 
     const AdminProjects = () => {
-    const { projects, updateProjectStage, addFile, addProject, refreshData } = useAppState();
+    const { projects, updateProjectStage, addFile, addProject, refreshData, sendMessage } = useAppState();
+    // Filter out completed projects - they should only appear in Completed section
+    const activeProjects = projects.filter((p: Project) => p.status !== 'completed');
     const [showModal, setShowModal] = useState(false);
     const [newProject, setNewProject] = useState({ title: '', description: '', clientId: '' });
     const [clients, setClients] = useState<User[]>([]);
@@ -1114,6 +1142,11 @@
     const [showClientDropdown, setShowClientDropdown] = useState(false);
     const [isLoadingClients, setIsLoadingClients] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const [showUploadModal, setShowUploadModal] = useState(false);
+    const [uploadProjectId, setUploadProjectId] = useState<string>('');
+    const [dragActive, setDragActive] = useState(false);
+    const [uploading, setUploading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Fetch clients when modal opens
     useEffect(() => {
@@ -1191,28 +1224,107 @@
         refreshData();
       };
 
-    const handleUploadMock = (projectId: string) => {
-        const fileName = prompt("Enter asset name (e.g. Design_Mockups_v2.zip):");
-        if (!fileName) return;
-        addFile(projectId, {
-        projectId,
-        name: fileName,
-        size: `${(Math.random() * 10).toFixed(1)} MB`,
-        uploadedBy: 'Admin',
-        url: '#'
-        });
+    const handleUploadClick = (projectId: string) => {
+        setUploadProjectId(projectId);
+        setShowUploadModal(true);
+    };
+
+    const handleDrag = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.type === "dragenter" || e.type === "dragover") {
+            setDragActive(true);
+        } else if (e.type === "dragleave") {
+            setDragActive(false);
+        }
+    };
+
+    const handleDrop = async (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragActive(false);
+
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            await uploadFile(e.dataTransfer.files[0]);
+        }
+    };
+
+    const handleFileInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            await uploadFile(e.target.files[0]);
+        }
+    };
+
+    const uploadFile = async (file: File) => {
+        if (!uploadProjectId) return;
+        
+        setUploading(true);
+        try {
+            const token = localStorage.getItem('osf_token');
+            if (!token) {
+                alert('Please login again');
+                return;
+            }
+
+            // For now, we'll create a file metadata entry
+            // In production, you'd upload to S3/Cloudinary first, then save metadata
+            const fileSize = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+            const fileName = file.name;
+
+            // Create a temporary URL (in production, this would be the actual uploaded file URL)
+            const fileUrl = URL.createObjectURL(file);
+
+            const res = await fetch('http://localhost:5000/api/files', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    projectId: uploadProjectId,
+                    name: fileName,
+                    url: fileUrl,
+                    size: fileSize
+                })
+            });
+
+            if (res.ok) {
+                const fileData = await res.json();
+                
+                // Send notification message to client
+                const project = projects.find((p: Project) => p.id === uploadProjectId);
+                if (project) {
+                    await sendMessage(uploadProjectId, `📎 New asset uploaded: ${fileName}`, true);
+                }
+
+                // Refresh data
+                refreshData();
+                
+                setShowUploadModal(false);
+                setUploadProjectId('');
+                alert(`File "${fileName}" uploaded successfully!`);
+            } else {
+                const error = await res.json();
+                alert(`Upload failed: ${error.message || 'Unknown error'}`);
+            }
+        } catch (err) {
+            console.error('Upload error:', err);
+            alert('Failed to upload file. Please try again.');
+        } finally {
+            setUploading(false);
+        }
     };
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-        {projects.map((p: Project) => (
+        {activeProjects.map((p: Project) => (
             <div key={p.id} className="bg-slate-900/50 border border-white/10 rounded-[2.5rem] p-10 hover:border-indigo-500/30 transition-all duration-500 flex flex-col justify-between shadow-2xl group">
             <div>
                 <div className="flex justify-between items-start mb-10">
                 <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center text-indigo-500 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-xl"><Rocket size={28} /></div>
                 <div className="flex flex-col items-end gap-2">
                     <div className="text-[9px] font-black uppercase tracking-[0.3em] px-4 py-1.5 bg-indigo-500/10 text-indigo-400 rounded-full border border-indigo-500/20">OPERATIONAL</div>
-                    <button onClick={() => handleUploadMock(p.id)} className="text-[8px] font-black uppercase tracking-widest text-slate-500 hover:text-white flex items-center gap-1 transition-colors"><Plus size={10} /> Upload Asset</button>
+                    <button onClick={() => handleUploadClick(p.id)} className="text-[8px] font-black uppercase tracking-widest text-slate-500 hover:text-white flex items-center gap-1 transition-colors"><Plus size={10} /> Upload Asset</button>
                 </div>
                 </div>
                 <h4 className="text-2xl font-black text-white mb-3 tracking-tight group-hover:text-indigo-400 transition-colors">{p.title}</h4>
@@ -1363,6 +1475,71 @@
                     </div>
                     <button type="submit" className="w-full bg-indigo-600 text-white font-black py-5 rounded-2xl shadow-xl shadow-indigo-600/20 hover:bg-indigo-500 transition-all">Launch Operation</button>
                 </form>
+                </motion.div>
+            </div>
+            )}
+        </AnimatePresence>
+
+        {/* FILE UPLOAD MODAL */}
+        <AnimatePresence>
+            {showUploadModal && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-md">
+                <motion.div 
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="glass-card w-full max-w-2xl rounded-[3rem] p-10 relative"
+                >
+                <button 
+                    onClick={() => {
+                        setShowUploadModal(false);
+                        setUploadProjectId('');
+                        setDragActive(false);
+                    }} 
+                    className="absolute top-8 right-8 text-slate-500 hover:text-white"
+                >
+                    <X size={24} />
+                </button>
+                <h3 className="text-2xl font-black text-white mb-8">Upload Project Asset</h3>
+                
+                <div
+                    onDragEnter={handleDrag}
+                    onDragLeave={handleDrag}
+                    onDragOver={handleDrag}
+                    onDrop={handleDrop}
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`border-2 border-dashed rounded-3xl p-16 text-center cursor-pointer transition-all ${
+                        dragActive 
+                            ? 'border-indigo-500 bg-indigo-500/10' 
+                            : 'border-white/10 hover:border-indigo-500/50 hover:bg-white/5'
+                    } ${uploading ? 'opacity-50 pointer-events-none' : ''}`}
+                >
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        onChange={handleFileInput}
+                        className="hidden"
+                        disabled={uploading}
+                    />
+                    {uploading ? (
+                        <div className="flex flex-col items-center gap-4">
+                            <Loader2 className="w-16 h-16 text-indigo-500 animate-spin" />
+                            <p className="text-white font-bold text-lg">Uploading...</p>
+                        </div>
+                    ) : (
+                        <>
+                            <CloudUpload size={64} className="mx-auto mb-6 text-indigo-400" />
+                            <p className="text-white font-black text-xl mb-2">Drag & Drop your file here</p>
+                            <p className="text-slate-500 text-sm mb-4">or click to browse</p>
+                            <p className="text-slate-600 text-xs uppercase tracking-widest">Supports all file types</p>
+                        </>
+                    )}
+                </div>
+                
+                <div className="mt-6 flex items-center justify-between text-xs text-slate-500">
+                    <span>File will be available to the client immediately</span>
+                    <span>Max size: 100MB</span>
+                </div>
                 </motion.div>
             </div>
             )}
