@@ -76,7 +76,7 @@
 
     return (
         <div className="bg-slate-950 min-h-screen flex text-slate-300">
-        <aside className={`${isSidebarOpen ? 'w-80' : 'w-24'} bg-slate-900 border-r border-white/5 transition-all duration-300 flex flex-col fixed inset-y-0 z-50 lg:static h-screen`}>
+        <aside className={`${isSidebarOpen ? 'w-80' : 'w-24'} bg-slate-900 border-r border-white/5 transition-all duration-300 flex flex-col h-screen`}>
             <div className="p-4 lg:p-8 flex items-center justify-between flex-shrink-0">
             <Link to="/" className="relative z-10">
                 {isSidebarOpen ? <LogoNavbar size="sm" /> : <LogoIcon size={32} />}
@@ -733,9 +733,10 @@
     const currentProject = projects.find(p => p.id === selectedProjectId);
 
     return (
-        <div className="h-[calc(100vh-14rem)] flex bg-slate-900/50 border border-white/10 rounded-3xl overflow-hidden shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)]">
-        <div className="w-96 border-r border-white/5 flex flex-col bg-slate-950/20">
-            <div className="p-8 border-b border-white/5 flex items-center justify-between">
+        <div className="h-[calc(100vh-14rem)] flex flex-col lg:flex-row bg-slate-900/50 border border-white/10 rounded-3xl overflow-hidden shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)]">
+        {/* Sidebar - desktop */}
+        <div className="hidden lg:flex w-96 border-r border-white/5 flex-col bg-slate-950/20">
+            <div className="p-6 border-b border-white/5 flex items-center justify-between">
             <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Active Threads</h3>
             </div>
             <div className="flex-grow overflow-y-auto">
@@ -747,11 +748,11 @@
                 <button 
                     key={p.id}
                     onClick={() => setSelectedProjectId(p.id)}
-                    className={`w-full text-left p-8 border-b border-white/5 transition-all relative group ${selectedProjectId === p.id ? 'bg-indigo-600/10' : 'hover:bg-white/2'}`}
+                    className={`w-full text-left p-6 border-b border-white/5 transition-all relative group ${selectedProjectId === p.id ? 'bg-indigo-600/10' : 'hover:bg-white/2'}`}
                 >
                     {selectedProjectId === p.id && <div className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-600"></div>}
                     <div className="flex justify-between mb-2">
-                    <h5 className="font-black text-white text-base truncate pr-2 tracking-tight group-hover:text-indigo-400 transition-colors">{p.title}</h5>
+                    <h5 className="font-black text-white text-sm truncate pr-2 tracking-tight group-hover:text-indigo-400 transition-colors">{p.title}</h5>
                     <span className="text-[9px] text-slate-600 font-black uppercase">{p.stage}</span>
                     </div>
                     <p className="text-xs text-slate-500 truncate font-medium">{lastMsg?.text || 'Waiting for first interaction'}</p>
@@ -761,17 +762,45 @@
             </div>
         </div>
         
+        {/* Main chat area */}
         <div className="flex-grow flex flex-col bg-slate-950/10">
-            <div className="p-8 border-b border-white/5 flex justify-between items-center bg-slate-900/40 backdrop-blur-md">
-            {currentProject ? (
-                <div className="flex items-center gap-5">
-                <div className="w-12 h-12 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-black">{currentProject.title.charAt(0)}</div>
-                <div>
-                    <h4 className="font-black text-xl text-white tracking-tight">{currentProject.title}</h4>
-                    <p className="text-[9px] text-indigo-400 font-black uppercase tracking-[0.2em]">DIRECT SECURE CHANNEL</p>
+            {/* Project selector (dropdown) - visible on all breakpoints */}
+            <div className="p-4 lg:p-6 border-b border-white/5 bg-slate-900/40 backdrop-blur-md flex flex-col gap-3">
+            <div className="flex items-center justify-between gap-3">
+                {currentProject ? (
+                <div className="flex items-center gap-3 lg:gap-5">
+                    <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-black">
+                    {currentProject.title.charAt(0)}
+                    </div>
+                    <div className="min-w-0">
+                    <h4 className="font-black text-sm lg:text-xl text-white tracking-tight truncate">{currentProject.title}</h4>
+                    <p className="hidden lg:block text-[9px] text-indigo-400 font-black uppercase tracking-[0.2em]">DIRECT SECURE CHANNEL</p>
+                    </div>
                 </div>
+                ) : (
+                <div className="text-slate-500 font-black uppercase tracking-widest text-[10px]">Select a project thread</div>
+                )}
+            </div>
+
+            <div className="w-full lg:w-72">
+                <label className="block text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 mb-1">
+                Project
+                </label>
+                <div className="relative">
+                <select
+                    value={selectedProjectId}
+                    onChange={e => setSelectedProjectId(e.target.value)}
+                    className="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 pr-8 text-xs lg:text-sm text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/60 appearance-none"
+                >
+                    {projects.map((p: Project) => (
+                    <option key={p.id} value={p.id}>
+                        {p.title}
+                    </option>
+                    ))}
+                </select>
+                <ChevronDown className="w-4 h-4 text-slate-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
-            ) : <div className="text-slate-500 font-black uppercase tracking-widest text-xs">Select a project thread</div>}
+            </div>
             </div>
             
             <div className="flex-grow p-4 lg:p-10 overflow-y-auto space-y-6 lg:space-y-8">
