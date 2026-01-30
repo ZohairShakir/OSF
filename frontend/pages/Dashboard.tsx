@@ -657,15 +657,22 @@
         <div className="bg-slate-900 border border-white/10 rounded-3xl p-8 shadow-2xl">
             <h3 className="font-black text-white uppercase text-[10px] tracking-[0.3em] mb-10 border-b border-white/5 pb-6">System Logs</h3>
             <div className="space-y-6">
-            {activities.slice(0, 10).map((log: ActivityLog) => (
-                <div key={log.id} className="flex gap-5">
-                <div className="w-1.5 h-1.5 bg-indigo-600 rounded-full mt-1.5 flex-shrink-0"></div>
-                <div>
-                    <p className="text-slate-300 text-sm font-bold leading-tight">{log.content}</p>
-                    <p className="text-[9px] text-slate-600 font-black uppercase mt-1 tracking-tighter">{new Date(log.timestamp).toLocaleString()}</p>
+            {activities && activities.length > 0 ? (
+                activities.slice(0, 10).map((log: ActivityLog) => (
+                    <div key={log.id} className="flex gap-5">
+                    <div className="w-1.5 h-1.5 bg-indigo-600 rounded-full mt-1.5 flex-shrink-0"></div>
+                    <div>
+                        <p className="text-slate-300 text-sm font-bold leading-tight">{log.content}</p>
+                        <p className="text-[9px] text-slate-600 font-black uppercase mt-1 tracking-tighter">{new Date(log.timestamp).toLocaleString()}</p>
+                    </div>
+                    </div>
+                ))
+            ) : (
+                <div className="text-center py-10">
+                    <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">No activity logs yet</p>
+                    <p className="text-slate-600 text-[10px] mt-2">System activities will appear here</p>
                 </div>
-                </div>
-            ))}
+            )}
             </div>
         </div>
         </div>

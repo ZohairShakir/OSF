@@ -20,7 +20,8 @@ const Contact: React.FC = () => {
         body: JSON.stringify({
           name: formData.name,
           email: formData.email,
-          message: `Service: ${formData.service}\n\n${formData.message}`
+          service: formData.service,
+          message: formData.message
         })
       });
       

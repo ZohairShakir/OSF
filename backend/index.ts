@@ -7,6 +7,7 @@ import projectRoutes from './routes/projects';
 import messageRoutes from './routes/messages';
 import publicRoutes from './routes/public';
 import fileRoutes from './routes/files';
+import activityRoutes from './routes/activities';
 
 dotenv.config();
 
@@ -26,6 +27,7 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/public', publicRoutes);
 app.use('/api/files', fileRoutes);
+app.use('/api/activities', activityRoutes);
 
 // Database Connection
 const MONGODB_URI = process.env.MONGODB_URI;

@@ -16,6 +16,7 @@ const API_PROJECTS = `${API_BASE}/projects`;
 const API_MESSAGES = `${API_BASE}/messages`;
 const API_PUBLIC = `${API_BASE}/public`;
 const API_FILES = `${API_BASE}/files`;
+const API_ACTIVITIES = `${API_BASE}/activities`;
 
 interface AppStateContextType {
   projects: Project[];
@@ -82,8 +83,16 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         }
       }
       
-      // Fetch activities (system-wide)
-      // Note: Activities are project-specific, so we'll fetch them per project in Dashboard
+      // Fetch activities (system-wide for admin, project-specific for clients)
+      try {
+        const activitiesRes = await fetch(`${API_ACTIVITIES}?limit=100`, { headers: getHeaders() });
+        if (activitiesRes.ok) {
+          const activitiesData = await activitiesRes.json();
+          setActivities(activitiesData);
+        }
+      } catch (err) {
+        console.error('Failed to fetch activities:', err);
+      }
     } catch (err) {
       console.error('State sync failure:', err);
     } finally {
