@@ -2,7 +2,8 @@
 import express from 'express';
 import ActivityLog from '../models/ActivityLog';
 import AuditRequest from '../models/AuditRequest';
-import { sendAuditRequestEmail } from '../utils/email';
+import Inquiry from '../models/Inquiry';
+import { sendAuditRequestEmail, sendWorkWithUsEmail } from '../utils/email';
 
 const router = express.Router();
 
@@ -51,6 +52,57 @@ router.post('/contact', async (req, res) => {
   } catch (error) {
     console.error('Contact form error:', error);
     res.status(500).json({ message: 'Failed to process audit request' });
+  }
+});
+
+router.post('/work-with-us', async (req, res) => {
+  try {
+    const { name, email, company, role, message } = req.body;
+    if (!name || !email || !company || !role || !message) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+    
+    console.log(`[Work With Us Inquiry] ${name} (${email}) from ${company}`);
+    
+    // Save to Inquiry collection
+    const inquiry = new Inquiry({
+      name,
+      email,
+      company,
+      role,
+      message,
+      type: 'work-with-us',
+      status: 'pending'
+    });
+    await inquiry.save();
+
+    // Log to ActivityLog
+    await new ActivityLog({
+      projectId: 'system',
+      type: 'message',
+      content: `New Work With Us Inquiry from ${name} (${email}) - Company: ${company}, Role: ${role}`
+    }).save();
+
+    // Send emails (admin notification + user confirmation)
+    const emailResult = await sendWorkWithUsEmail({
+      name,
+      email,
+      company,
+      role,
+      message
+    });
+
+    if (!emailResult.success) {
+      console.warn('[Work With Us] Email sending failed, but inquiry saved:', emailResult.message);
+    }
+
+    res.json({ 
+      success: true, 
+      message: 'Your inquiry has been received. We will respond within 24 hours.' 
+    });
+  } catch (error) {
+    console.error('Work With Us form error:', error);
+    res.status(500).json({ message: 'Failed to process inquiry' });
   }
 });
 

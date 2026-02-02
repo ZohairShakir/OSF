@@ -16,13 +16,20 @@ const WorkWithUs: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('/api/public/contact', {
+      // Use the correct API endpoint for work-with-us inquiries
+      const apiBase = import.meta.env?.PROD || import.meta.env?.MODE === 'production'
+        ? (import.meta.env?.VITE_API_URL || '/api')
+        : 'http://localhost:5000/api';
+      
+      const response = await fetch(`${apiBase}/public/work-with-us`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: formData.name,
           email: formData.email,
-          message: `Work With Us Inquiry\nRole: ${formData.role}\nCompany: ${formData.company}\n\n${formData.message}`
+          company: formData.company,
+          role: formData.role,
+          message: formData.message
         })
       });
       
@@ -30,12 +37,13 @@ const WorkWithUs: React.FC = () => {
         setIsSubmitted(true);
         setFormData({ name: '', email: '', company: '', role: 'Founder/CEO', message: '' });
       } else {
-        throw new Error('Failed to submit');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to submit inquiry');
       }
-    } catch (error) {
-      console.error('Contact form error:', error);
-      setIsSubmitted(true);
-      setFormData({ name: '', email: '', company: '', role: 'Founder/CEO', message: '' });
+    } catch (error: any) {
+      console.error('Work With Us form error:', error);
+      // Still show success to user for better UX, but log the error
+      alert(error.message || 'Failed to submit inquiry. Please try again or contact us directly.');
     }
   };
 
